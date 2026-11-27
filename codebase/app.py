@@ -1,9 +1,4 @@
-"""Khung chạy bản chạy thử tối thiểu (dòng lệnh): gõ đầu vào → answer() trong agent.py → in kết quả.
-
-Chạy bằng: python run.py   (macOS/Linux có thể là python3, Windows có thể là py)
-Nhóm thay bằng giao diện của mình (web, bot…) nhưng giữ `python run.py` là lệnh duy nhất
-để chạy bản chạy thử (sửa hàm run_app() trong run.py nếu cần).
-"""
+"""Mở giao diện web bằng python run.py hoặc chạy CLI bằng python codebase/app.py --cli."""
 import os
 import sys
 
@@ -66,4 +61,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    if "--cli" in sys.argv:
+        sys.exit(main())
+
+    from web_preview import serve
+
+    serve()

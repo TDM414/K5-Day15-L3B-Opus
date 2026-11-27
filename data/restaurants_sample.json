@@ -1,8 +1,11 @@
 {
   "metadata": {
-    "description": "Danh sách 4 quán cơm trưa văn phòng mẫu cho lát cắt D2 (tên món và thuộc tính tham chiếu từ bộ món Việt vietnamese_dishes.csv; quán, giá VNĐ và phí giao hàng là dữ liệu mẫu có kiểm soát phục vụ demo và kiểm ràng buộc).",
+    "description": "Menu mô phỏng theo suất một người. Tên quán, giá, phí ship và tồn kho là dữ liệu mẫu. Thành phần tham chiếu từ công thức.",
     "currency": "VND",
-    "created_at": "2026-11-27"
+    "created_at": "2026-11-27",
+    "version": "4",
+    "ingredient_source": "data/processed/vietnamese_dishes.csv",
+    "serving_size": 1
   },
   "restaurants": [
     {
@@ -15,107 +18,192 @@
           "dish_id": "Q01-M01",
           "ten_mon": "Cơm gà xối mỡ",
           "price_vnd": 45000,
-          "loai_mon": "Cơm / Xôi / Cháo",
-          "che_do_an": "Mặn; Gia cầm",
-          "huong_vi": "mặn ngọt, thơm tỏi",
-          "allergens": [
-            "gia_cam"
-          ],
+          "allergens": [],
           "is_vegetarian": false,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": false,
+          "ingredients": "Đùi gà góc 4 2 cái, Lá dứa thắt gút 2 cái, Nước gừng 30g, Nước cốt tỏi 1 muỗng, Gừng lát 2 lát, Mỡ gà 100g, Cơm trắng 4 chén, Tỏi băm 1 muỗng, Gia vị: dầu ăn, bột nghệ, rượu ngũ vị hương, mạch nha, nước cốt chanh, Ăn kèm: xà lách, dưa leo, cà chua, hành tím chua, ớt cắt lát., Gia vị nêm sẵn Aji-Quick Bột tẩm khô chiên giòn, Hạt nêm Aji-ngon Gà, Nước tương Phú Sĩ",
+          "ingredient_status": "legacy_partial",
+          "ingredient_tags": [
+            "gia_cam",
+            "toi"
+          ],
+          "source_dish_id": "VN-1109"
         },
         {
-          "dish_id": "Q01-M02",
-          "ten_mon": "Cơm sườn nướng mật ong",
+          "dish_id": "Q01-M12",
+          "ten_mon": "Cơm cuộn ba rọi xông khói",
           "price_vnd": 48000,
-          "loai_mon": "Cơm / Xôi / Cháo",
-          "che_do_an": "Mặn; Thịt heo",
-          "huong_vi": "mặn ngọt, thơm nướng",
           "allergens": [
-            "thit_heo"
+            "sua"
           ],
           "is_vegetarian": false,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": false,
+          "ingredients": "Ba rọi nạc xông khói Le Gourmet 250 Gr, Cơm nguội 200 Gr, Phô mai lát 24 Gr, Cà rốt 40 Gr, Hành tây 40 Gr, Hành lá 20 Gr, Dầu ăn 4 muỗng canh",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1078",
+          "ingredient_tags": [
+            "thit_heo"
+          ]
         },
         {
-          "dish_id": "Q01-M03",
-          "ten_mon": "Cơm cá hồi áp chảo sốt chanh dây",
+          "dish_id": "Q01-M13",
+          "ten_mon": "Cơm chiên cá giòn",
           "price_vnd": 68000,
-          "loai_mon": "Cơm / Xôi / Cháo",
-          "che_do_an": "Mặn; Hải sản",
-          "huong_vi": "chua ngọt nhẹ, béo",
           "allergens": [
+            "ca",
             "hai_san",
-            "ca"
+            "trung"
           ],
           "is_vegetarian": false,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": false,
+          "ingredients": "Cơm nguội bỏ tủ lạnh qua đêm: 1 tô, Cà rốt cắt hạt lựu. Đậu Hà Lan tuỳ thích. bắp hạt 1 it, hành tây hạt lựu, , Cá hồi hoặc cá basa phi Lê cắt hạt lựu, Tỏi băm nhỏ, Gia vị: muối 1/2 thìa cf, nước mắm 2 thìa cf, bột ngọt 1/2 thìa cf, hạt nêm 1 thìa cf, tiêu ngò hành trang trí, Trứng gà 2 quả",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1057"
         },
         {
           "dish_id": "Q01-M04",
           "ten_mon": "Cơm thịt kho trứng cút",
           "price_vnd": 42000,
-          "loai_mon": "Kho / Rim / Om / Hầm",
-          "che_do_an": "Mặn; Thịt heo",
-          "huong_vi": "mặn đậm đà, béo bùi",
           "allergens": [
-            "thit_heo",
             "trung"
           ],
           "is_vegetarian": false,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": false,
+          "ingredients": "Thịt ba chỉ 400 Gr, Trứng cút 20 Quả, Nước mắm 1 muỗng canh, Nước màu 1 muỗng canh, Đường trắng 1 muỗng canh, Tiêu 1/2 muỗng cà phê, Bột ngọt 1/2 muỗng cà phê, Hạt nêm 1 muỗng cà phê, Dầu ăn 2 muỗng canh",
+          "ingredient_status": "legacy_partial",
+          "ingredient_tags": [
+            "thit_heo"
+          ],
+          "source_dish_id": "VN-1630"
         },
         {
-          "dish_id": "Q01-M05",
-          "ten_mon": "Cơm đậu hũ sốt cà chua chay",
+          "dish_id": "Q01-M14",
+          "ten_mon": "Cơm ngũ sắc chay",
           "price_vnd": 36000,
-          "loai_mon": "Món chay",
-          "che_do_an": "Chay",
-          "huong_vi": "chua ngọt thanh đạm",
+          "allergens": [
+            "me"
+          ],
+          "is_vegetarian": true,
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": false,
+          "ingredients": "Súp lơ 1 Cái, Cà rốt 1 Củ, Bắp ngọt 1 Bắp, Giá đỗ 300 Gr, Nấm hương 30 Cái, Hạt nêm chay Knorr Nấm hương 2 muỗng cà phê, Mè trắng 2 muỗng cà phê, Gạo 1 Cốc",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1775"
+        },
+        {
+          "dish_id": "Q01-M15",
+          "ten_mon": "Cơm saffron cà ri gà",
+          "price_vnd": 45000,
+          "allergens": [
+            "sua"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": true,
+          "ingredients": "Đùi gà 3 Cái, Sữa dừa organic Ecomil 400 ml, Saffron 12 Sợi, Bơ lạt 30 Gr, Hành tây 60 Gr, Tỏi 10 Gr, Hành tím 10 Gr, Bột cà ri 2 muỗng canh, Bột ớt paprika 1 muỗng canh, Đường trắng 1 muỗng canh, Hạt nêm 2 muỗng canh, Muối 1/2 muỗng cà phê, Tiêu 1/2 muỗng cà phê, Dầu ăn 2 muỗng canh",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1096",
+          "ingredient_tags": [
+            "gia_cam"
+          ]
+        },
+        {
+          "dish_id": "Q01-M16",
+          "ten_mon": "Cơm tấm sườn bì chay",
+          "price_vnd": 40000,
           "allergens": [
             "dau_nanh"
           ],
           "is_vegetarian": true,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": true,
+          "ingredients": "Sươn non chay 7 miêng, Gao 50gr, Đâu nanh 50gr, Bun tau 2 lon, He la 50gr, Ơt hiêm đo băm 2 muông canh, Tương ơt 1 muông canh, Tương ca 2 muông canh, Ngu vi hương 1 muông ca phê, Muôi 1 muông ca phê, Đương 5 muông canh, Tiêu 1 muông canh, Hat nêm chay 15gr, Dâu hao chay 1 muông canh, Dâu mau điêu 1 muông canh, Nươc tương 1 muông ca phê, Nươc măm chay 4 muông canh, Gao tâm 500gr, Ăn kem: Đô chua",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1778"
         },
         {
-          "dish_id": "Q01-M06",
-          "ten_mon": "Cơm gà xé phay cay sa tế",
-          "price_vnd": 45000,
-          "loai_mon": "Cơm / Xôi / Cháo",
-          "che_do_an": "Mặn; Gia cầm",
-          "huong_vi": "cay, thơm thảo mộc",
+          "dish_id": "Q01-M17",
+          "ten_mon": "Cơm tôm bí đỏ",
+          "price_vnd": 52000,
           "allergens": [
-            "gia_cam",
-            "cay"
+            "tom",
+            "hai_san",
+            "dau_nanh"
           ],
           "is_vegetarian": false,
-          "in_stock": true
+          "in_stock": false,
+          "dish_category": "cơm",
+          "is_spicy": true,
+          "ingredients": "Bí đỏ: 100g, Tôm sú: 200g, Đậu cô ve Nhật: 100g, Cơm nguội: 2 chén, Hành lá: 2 cây, Ngò rí: 2 cây, Ớt hiểm: 3 lát, Tiêu, tỏi băm, dầu ăn, Nước tương LISA, Hạt nêm Aji-ngon Heo",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1120",
+          "ingredient_tags": [
+            "thit_heo"
+          ]
         },
         {
-          "dish_id": "Q01-M07",
-          "ten_mon": "Cơm nấm đùi gà kho tiêu chay",
-          "price_vnd": 40000,
-          "loai_mon": "Món chay",
-          "che_do_an": "Chay",
-          "huong_vi": "mặn nhẹ, thơm tiêu",
+          "dish_id": "Q01-M09",
+          "ten_mon": "Cơm gà xì dầu",
+          "price_vnd": 49000,
+          "allergens": [
+            "dau_nanh",
+            "me"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": null,
+          "ingredients": "Đùi gà góc tư 2 Cái, Nước tương 150 ml, Hắc xì dầu 50 ml, Dầu mè 15 ml, Rượu mai quế lộ 15 ml, Đường nâu 30 Gr, Nước lọc 300 ml, Gừng 20 Gr, Hành tím 10 Gr, Tỏi 10 Gr, Hoa hồi 5 Cái, Thanh quế 1 miếng, Cải thìa 50 Gr",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1082",
+          "ingredient_tags": [
+            "gia_cam"
+          ]
+        },
+        {
+          "dish_id": "Q01-M10",
+          "ten_mon": "Cơm chiên chay Hoàng Hậu",
+          "price_vnd": 43000,
           "allergens": [],
           "is_vegetarian": true,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": null,
+          "ingredients": "Đậu que 100 Gr, Cà rốt 3 Củ, Dưa leo 1 Trái, Cà chua 1 Củ, Chả lụa chay 100 Gr, Bắp cải tím 100 Gr, Tỏi 1 Tép, Hành tây 1 Củ, Hạt nêm chay Knorr Nấm hương 1 muỗng cà phê, Bột ngọt 1/2 muỗng cà phê",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1773"
         },
         {
-          "dish_id": "Q01-M08",
-          "ten_mon": "Cơm tôm rim mặn ngọt",
-          "price_vnd": 52000,
-          "loai_mon": "Kho / Rim / Om / Hầm",
-          "che_do_an": "Mặn; Hải sản",
-          "huong_vi": "mặn ngọt",
+          "dish_id": "Q01-M11",
+          "ten_mon": "Cơm tấm sườn cây",
+          "price_vnd": 55000,
           "allergens": [
+            "ca",
             "hai_san",
-            "tom"
+            "sua",
+            "dau_nanh"
           ],
           "is_vegetarian": false,
-          "in_stock": false
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": true,
+          "ingredients": "Sườn cây 4 cây 600gr, Hành tím xay 1 muỗng, Tỏi xay 1/2 muỗng, Sả bào 1 muỗng, Hành lá 100g, Mỡ heo 100g, Bột ngũ vị hương 1/3 muỗng, Bột baking soda 1/3 muỗng, ĂN KÈM: cơm tâm, đồ chua, dưa leo, cà chua, ớt xay, Gia vị: Sữa đặc, dầu ăn, nước mắm, Nước tương Phú Sĩ, Bột ngọt AJI-NO-MOTO, Giấm gạo lên men Ajinomoto, Hạt nêm Aji-ngon Heo",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1121",
+          "ingredient_tags": [
+            "thit_heo"
+          ]
         }
       ]
     },
@@ -129,96 +217,173 @@
           "dish_id": "Q02-M01",
           "ten_mon": "Cơm thịt bò xào lúc lắc",
           "price_vnd": 55000,
-          "loai_mon": "Xào / Chiên / Rán",
-          "che_do_an": "Mặn; Thịt bò",
-          "huong_vi": "mặn đậm đà, thơm tiêu",
-          "allergens": [
-            "thit_bo"
-          ],
+          "allergens": [],
           "is_vegetarian": false,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": false,
+          "ingredients": "100gr thịt bò thăn, 1/2 quả ớt chuông xanh, 1/2 quả ớt chuông đỏ, ngò rí, tiêu, hạt nêm, dầu hào, bột bắp, dầu ăn, tỏi, xà lách 5 lá, cà chua 1 quả",
+          "ingredient_status": "legacy_partial",
+          "ingredient_tags": [
+            "thit_bo",
+            "tieu"
+          ],
+          "source_dish_id": "VN-2926"
         },
         {
           "dish_id": "Q02-M02",
           "ten_mon": "Cơm cá lóc kho tộ",
           "price_vnd": 46000,
-          "loai_mon": "Kho / Rim / Om / Hầm",
-          "che_do_an": "Mặn; Hải sản",
-          "huong_vi": "mặn ngọt, thơm hành",
           "allergens": [
             "ca",
             "hai_san"
           ],
           "is_vegetarian": false,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": false,
+          "ingredients": "Cá lóc 1 Con, Hạt nêm 2 muỗng cà phê, Bột ngọt 1/2 muỗng cà phê, Đường trắng 2 muỗng cà phê, Tiêu 1/2 muỗng cà phê, Nước mắm 3 muỗng canh, Nước màu 1 muỗng canh, Ớt 2 Trái, Hành tím 4 Củ, Hành lá 2 Nhánh, Dầu ăn 1 muỗng canh",
+          "ingredient_status": "legacy_partial",
+          "ingredient_tags": [
+            "hanh"
+          ],
+          "source_dish_id": "VN-1448"
         },
         {
-          "dish_id": "Q02-M03",
-          "ten_mon": "Cơm gà kho gừng sả",
+          "dish_id": "Q02-M11",
+          "ten_mon": "Cơm gà rau răm",
           "price_vnd": 42000,
-          "loai_mon": "Kho / Rim / Om / Hầm",
-          "che_do_an": "Mặn; Gia cầm",
-          "huong_vi": "thơm gừng sả, không cay",
           "allergens": [
-            "gia_cam"
+            "dau_nanh"
           ],
           "is_vegetarian": false,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": true,
+          "ingredients": "Gà ta : 1/2 con, Bột nghệ : 1/4 muỗng, Gạo ngon : 300g, Mỡ gà : 50g, Rau răm : 30g, Hành tây : 1 củ, Cà rốt : 1/4 củ, Tỏi băm : 1 muỗng, Đầu hành băm : 1/2 muỗng, Hành phi, ớt hiểm, Muối, đường, dầu ăn, gừng đập dập, Hạt nêm Aji-ngon Heo, Giấm gạo lên men Ajinomoto, Bột ngọt AJI-NO-MOTO, Nước tương Phú Sĩ",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1108",
+          "ingredient_tags": [
+            "gia_cam",
+            "thit_heo"
+          ]
         },
         {
-          "dish_id": "Q02-M04",
-          "ten_mon": "Cơm rau củ xào thập cẩm đậu hũ chay",
+          "dish_id": "Q02-M12",
+          "ten_mon": "Cơm chiên cá mặn chay",
           "price_vnd": 35000,
-          "loai_mon": "Món chay",
-          "che_do_an": "Chay",
-          "huong_vi": "thanh đạm, không cay",
           "allergens": [
             "dau_nanh"
           ],
           "is_vegetarian": true,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": false,
+          "ingredients": "Cá mặn chay : 100g, Bắp mỹ nguyên hạt : 30g, Cơm : 3 chén, Ớt chuông xanh đỏ : 50g, Nấm linh chi : 50g, Hành boa rô : 1 cây, Ngò rí, Tiêu, đường, dầu ăn, Hạt nêm Aji-ngon Nấm, Nước tương Phú Sĩ",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1777"
         },
         {
           "dish_id": "Q02-M05",
           "ten_mon": "Cơm ba rọi chiên sả ớt",
           "price_vnd": 44000,
-          "loai_mon": "Xào / Chiên / Rán",
-          "che_do_an": "Mặn; Thịt heo",
-          "huong_vi": "cay, mặn giòn",
-          "allergens": [
-            "thit_heo",
-            "cay"
-          ],
+          "allergens": [],
           "is_vegetarian": false,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": true,
+          "ingredients": "Thịt ba chỉ 500 Gr, Sả băm 100 Gr, Sả 1 Cây, Ớt 3 Trái, Tỏi băm 1 muỗng canh, Muối 1/2 muỗng cà phê, Bột ngọt 1 muỗng cà phê, Nước mắm 2 muỗng canh, Dầu ăn 200 ml",
+          "ingredient_status": "legacy_partial",
+          "ingredient_tags": [
+            "thit_heo"
+          ],
+          "source_dish_id": "VN-2908"
         },
         {
-          "dish_id": "Q02-M06",
-          "ten_mon": "Cơm trứng chiên thịt bằm + canh cải",
+          "dish_id": "Q02-M13",
+          "ten_mon": "Cơm chiên trứng chả lụa",
           "price_vnd": 38000,
-          "loai_mon": "Cơm / Xôi / Cháo",
-          "che_do_an": "Mặn; Thịt heo",
-          "huong_vi": "nhẹ nhàng, không cay",
           "allergens": [
-            "thit_heo",
             "trung"
           ],
           "is_vegetarian": false,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": false,
+          "ingredients": "Cơm nguội 1 Tô, Chả lụa 200 Gr, Trứng gà 2 Cái, Cà rốt 1/2 Củ, cải trắng 1/2 Củ",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1068",
+          "ingredient_tags": [
+            "thit_heo"
+          ]
         },
         {
           "dish_id": "Q02-M07",
           "ten_mon": "Cơm bò xào sả ớt",
           "price_vnd": 52000,
-          "loai_mon": "Xào / Chiên / Rán",
-          "che_do_an": "Mặn; Thịt bò",
-          "huong_vi": "cay, thơm sả",
+          "allergens": [],
+          "is_vegetarian": false,
+          "in_stock": false,
+          "dish_category": "cơm",
+          "is_spicy": true,
+          "ingredients": "Thịt bò 250 Gr, Gừng 1/2 Củ, Sả 2 Cây, Ớt 2 Trái, Dầu ăn 2 muỗng canh, Nước mắm 1 muỗng canh, Hạt nêm 1 muỗng cà phê, Đường trắng 2 muỗng cà phê, Muối 1 muỗng cà phê, Tỏi 2 Tép, Hành lá 100 Gr",
+          "ingredient_status": "legacy_partial",
+          "ingredient_tags": [
+            "sa",
+            "thit_bo"
+          ],
+          "source_dish_id": "VN-2939"
+        },
+        {
+          "dish_id": "Q02-M08",
+          "ten_mon": "Cơm trộn thịt hầm",
+          "price_vnd": 48000,
           "allergens": [
-            "thit_bo",
-            "cay"
+            "dau_nanh"
           ],
           "is_vegetarian": false,
-          "in_stock": false
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": false,
+          "ingredients": "Nấm hương 5 Cái, Hành lá 2 Cây, Hành tím băm 3 muỗng canh, Thịt heo bằm 500 Gr, Rượu trắng 1 muỗng canh, Nước tương 1/2 Chén, Hạt nêm 1 muỗng canh, Đường trắng 1 muỗng canh, Bột ngũ vị hương 1/2 muỗng cà phê, Cơm 5 Chén, Dầu ăn 2 muỗng canh",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1100",
+          "ingredient_tags": [
+            "thit_heo"
+          ]
+        },
+        {
+          "dish_id": "Q02-M09",
+          "ten_mon": "Cơm chiên rau củ chay",
+          "price_vnd": 39000,
+          "allergens": [
+            "dau_nanh"
+          ],
+          "is_vegetarian": true,
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": true,
+          "ingredients": "Đậu bi Hà Lan : 70g, Cơm: 2 tô, Hành boaro: 1 khúc, Củ sắn: 1/3 củ, Cà rốt: 1/2 củ, Nấm mèo: 2 tai, Tàu hũ ky: 1 miếng, 1 ít ngò rí, ớt, Muối, tiêu, dầu ăn, Bột ngọt AJI-NO-MOTO, Nước tương Phú Sĩ",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1776"
+        },
+        {
+          "dish_id": "Q02-M10",
+          "ten_mon": "Cơm gà Quảng Nam",
+          "price_vnd": 52000,
+          "allergens": [
+            "dau_nanh"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": true,
+          "ingredients": "Thịt gà 1 Con, Gạo 500 Gr, Hành tây 1 Củ, Bột nghệ 1 muỗng cà phê, Tiêu 1 muỗng cà phê, Chanh 1 Trái, Rau răm 15 Gr, Dưa leo 1 Trái, Giấm 2 muỗng cà phê, Nước tương 2.50 muỗng canh, Tương ớt 1/2 muỗng cà phê, Dầu ăn 1 muỗng canh, Muối 1 muỗng cà phê",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1081",
+          "ingredient_tags": [
+            "gia_cam"
+          ]
         }
       ]
     },
@@ -229,102 +394,178 @@
       "shipping_fee_vnd": 20000,
       "menu": [
         {
-          "dish_id": "Q03-M01",
-          "ten_mon": "Phở bò tái chín",
+          "dish_id": "Q03-M11",
+          "ten_mon": "Phở bò tái bò viên",
           "price_vnd": 50000,
-          "loai_mon": "Phở / Bún / Mì",
-          "che_do_an": "Mặn; Thịt bò",
-          "huong_vi": "ngọt thanh, thơm thảo mộc",
           "allergens": [
-            "thit_bo"
+            "ca",
+            "hai_san"
           ],
           "is_vegetarian": false,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "phở",
+          "is_spicy": false,
+          "ingredients": "Thịt bò 200 Gr, Bò viên 200 Gr, Bánh phở 500 Gr, Nước cốt phở Vianco 150 ml, Nước 1 Lít, Hành tây 30 Gr, Hành tím 20 Gr, Muối 1 muỗng cà phê, Đường trắng 1/2 muỗng cà phê, Nước mắm 1 muỗng cà phê",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-2882",
+          "ingredient_tags": [
+            "thit_bo"
+          ]
         },
         {
           "dish_id": "Q03-M02",
           "ten_mon": "Bún chả Hà Nội",
           "price_vnd": 48000,
-          "loai_mon": "Phở / Bún / Mì",
-          "che_do_an": "Mặn; Thịt heo",
-          "huong_vi": "chua ngọt, thơm nướng",
-          "allergens": [
+          "allergens": [],
+          "is_vegetarian": false,
+          "in_stock": true,
+          "dish_category": "bún",
+          "is_spicy": false,
+          "ingredients": "Thịt heo xay 500 Gr, Thịt ba chỉ 500 Gr, Tỏi băm 40 Gr, Hành tím băm 40 Gr, Tiêu xay 6 Gr, Nước mắm 40 ml, Nước hàng 40 ml, Dầu hào 30 Gr, Mật ong 20 Gr, Dầu ăn 2 muỗng cà phê, Su hào 100 Gr, Cà rốt 100 Gr, Đường trắng 30 Gr, Giấm 15 ml, Nước 100 ml, Đường trắng 15 Gr, Nước mắm 15 Gr, Giấm 15 Gr, Bún tươi 100 Gr, Rau thơm 100 Gr, Húng quế 100 Gr, Rau kinh giới 100 Gr",
+          "ingredient_status": "legacy_partial",
+          "ingredient_tags": [
             "thit_heo"
           ],
-          "is_vegetarian": false,
-          "in_stock": true
+          "source_dish_id": "VN-2716"
         },
         {
-          "dish_id": "Q03-M03",
-          "ten_mon": "Bún bò Huế cay nồng",
+          "dish_id": "Q03-M12",
+          "ten_mon": "Bún bò Huế giò nạm",
           "price_vnd": 52000,
-          "loai_mon": "Phở / Bún / Mì",
-          "che_do_an": "Mặn; Thịt bò; Thịt heo",
-          "huong_vi": "cay, đậm đà mắm ruốc",
-          "allergens": [
-            "thit_bo",
-            "thit_heo",
-            "cay",
-            "mam_ruoc"
-          ],
+          "allergens": [],
           "is_vegetarian": false,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "bún",
+          "is_spicy": null,
+          "ingredients": "Móng giò heo 1 Cái, Sả 10 Cây, Củ sắn 500 Gr, Xà lách 100 Gr, Rau mầm 50 Gr, Bắp chuối 50 Gr, Bún tươi 1.20 Kg, Hành tây 2 Củ, Thịt nạm bò 500 Gr, Rau thơm 30 Gr",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-2711",
+          "ingredient_tags": [
+            "thit_bo",
+            "thit_heo"
+          ]
         },
         {
           "dish_id": "Q03-M04",
           "ten_mon": "Bún thịt nướng đậu phộng",
           "price_vnd": 45000,
-          "loai_mon": "Phở / Bún / Mì",
-          "che_do_an": "Mặn; Thịt heo",
-          "huong_vi": "thơm nướng, béo bùi đậu phộng",
           "allergens": [
-            "thit_heo",
             "dau_phong"
           ],
           "is_vegetarian": false,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "bún",
+          "is_spicy": false,
+          "ingredients": "Thịt nạc dăm: 400g, Hành lá: 100g, Bún tươi: 800g, Đậu phộng rang: 100g, Xà lách, rau thơm, Dưa leo, giá, Cà rốt, củ cải chua: 200g, Hành tím, tỏi, sả băm, Rượu ngũ vị hương, mật ong, Muối, đường, dầu ăn, Hạt nêm Aji-ngon Heo, Giấm gạo lên men Ajinomoto, Nước tương Phú Sĩ",
+          "ingredient_status": "legacy_partial",
+          "ingredient_tags": [
+            "thit_heo"
+          ],
+          "source_dish_id": "VN-2772"
         },
         {
-          "dish_id": "Q03-M05",
-          "ten_mon": "Cơm gà luộc lá chanh",
+          "dish_id": "Q03-M13",
+          "ten_mon": "Cơm gà Hội An",
           "price_vnd": 46000,
-          "loai_mon": "Cơm / Xôi / Cháo",
-          "che_do_an": "Mặn; Gia cầm",
-          "huong_vi": "thanh đạm, không cay",
           "allergens": [
-            "gia_cam"
+            "ca",
+            "hai_san"
           ],
           "is_vegetarian": false,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": true,
+          "ingredients": "Thịt gà 1 Con, Hành tây 1 Củ, Hành tím 20 Gr, Gừng 20 Gr, Bột nghệ 1 muỗng canh, Trái tắc 3 Trái, Gạo tẻ 200 Gr, Tỏi 10 Gr, Dầu ăn 1 muỗng canh, Lòng gà 200 Gr, Hành tím 5 Gr, Dầu điều 1 muỗng canh, Tỏi 20 Gr, Ớt 80 Gr, Dầu ăn 1 muỗng canh, Cà rốt 100 Gr, Đu đủ 100 Gr, Hành tây 100 Gr, Hành phi 20 Gr, Trái tắc 3 Trái, Rau răm 20 Gr, Đường trắng 60 Gr, Nước mắm 50 ml, Muối 3 muỗng cà phê, Tiêu 2 muỗng cà phê, Bột ngọt 2.50 muỗng cà phê, Bột ngũ vị hương 1 muỗng cà phê",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1080",
+          "ingredient_tags": [
+            "gia_cam"
+          ]
         },
         {
-          "dish_id": "Q03-M06",
-          "ten_mon": "Bún trộn chay nấm đậu hũ",
+          "dish_id": "Q03-M14",
+          "ten_mon": "Bún gạo xào chay rau nấm",
           "price_vnd": 40000,
-          "loai_mon": "Món chay",
-          "che_do_an": "Chay",
-          "huong_vi": "chua ngọt, không cay",
           "allergens": [
             "dau_nanh"
           ],
           "is_vegetarian": true,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "bún",
+          "is_spicy": false,
+          "ingredients": "Nấm linh chi trắng 50 Gr, Cà rốt 1 Củ, Đậu hũ chiên 50 Gr, Bún gạo 300 Gr, Ớt chuông 1 Trái, Đậu que 50 Gr, Hành boa rô 1 Nhánh, Bông cải xanh 100 Gr, Nước tương 2 muỗng canh, Hạt nêm chay Knorr Nấm hương 1 muỗng cà phê, Muối 1 muỗng cà phê, Đường trắng 2 muỗng cà phê",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1733"
         },
         {
-          "dish_id": "Q03-M07",
-          "ten_mon": "Bún hải sản chua cay",
+          "dish_id": "Q03-M15",
+          "ten_mon": "Bún xào hải sản",
           "price_vnd": 58000,
-          "loai_mon": "Phở / Bún / Mì",
-          "che_do_an": "Mặn; Hải sản",
-          "huong_vi": "cay, chua ngọt",
           "allergens": [
-            "hai_san",
             "tom",
             "muc",
-            "cay"
+            "hai_san",
+            "dau_nanh"
           ],
           "is_vegetarian": false,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "bún",
+          "is_spicy": false,
+          "ingredients": "Bún khô 150g, Tôm sú 8 con 200g, Mực ống 1 con 200g, Củ hồi fennel 150g, Cà chua bi 50g, Hành tây 1/2 củ, Ớt chuông vàng 1/3 trái, Trang trí: Ngò rí, Gia vị: Muối, đường, dầu ăn, tiêu, hành tỏi băm, nước cốt chanh, Nước tương Phú Sĩ, Bột ngọt AJI-NO-MOTO",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-2777"
+        },
+        {
+          "dish_id": "Q03-M08",
+          "ten_mon": "Phở gà",
+          "price_vnd": 49000,
+          "allergens": [
+            "ca",
+            "hai_san"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true,
+          "dish_category": "phở",
+          "is_spicy": true,
+          "ingredients": "Gà ta nửa con, Bánh phở 500gr, Xương gà 400gr, Hành tây 1 củ, Hành lá 30gr, Ngò rí 30 gr, Lá chanh 10gr, Gừng 30gr, Hành tím 40gr, Hạt ngò 5gr, Hoa hồi 3gr, Quế thanh 3gr, Hạt nêm 10gr, Đường 20gr, Nước mắm 30 gr, Chanh 1 quả, Ngò gai 20gr, Giá đỗ 60gr, Húng quế 30gr, Ớt hiểm đỏ 2 trái",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-2887",
+          "ingredient_tags": [
+            "gia_cam"
+          ]
+        },
+        {
+          "dish_id": "Q03-M09",
+          "ten_mon": "Phở chay",
+          "price_vnd": 45000,
+          "allergens": [
+            "sua",
+            "dau_nanh"
+          ],
+          "is_vegetarian": true,
+          "in_stock": true,
+          "dish_category": "phở",
+          "is_spicy": null,
+          "ingredients": "Bò lát chay 100g, Tép mỡ chay 50g, Ham chay 100g, Boa-ro băm 1 cây, Cà rốt 50g, Nấm đông cô tươi 10 tai, Cải thảo 100g, Bánh phở 800g, Bơ tươi 1 muỗng, Ngò rí, cọng ngò gai, Nước dùng: Củ cải trắng, bắp mỹ, cà rốt, mía, poa-rô, quế, hồi, thảo quả, gừng, nấm hương khô, Muối, đường phèn, gia vị phở chay, dầu ăn, Bột ngọt AJI-NO-MOTO, Hạt nêm Aji-ngon Nấm, Nước tương Phú Sĩ",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1844"
+        },
+        {
+          "dish_id": "Q03-M10",
+          "ten_mon": "Miến xào trứng",
+          "price_vnd": 46000,
+          "allergens": [
+            "trung",
+            "hai_san",
+            "dau_nanh"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true,
+          "dish_category": "miến",
+          "is_spicy": false,
+          "ingredients": "Miến 50 Gr, Dầu hào 15 Gr, Nước tương 20 ml, Trứng gà 2 Quả, Giá đỗ 50 Gr, Hành lá 1/2 Cây, Ngò rí 10 Gr, Ngò tây 5 Gr, Dầu ăn 2 muỗng canh",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-2813"
         }
       ]
     },
@@ -335,85 +576,382 @@
       "shipping_fee_vnd": 18000,
       "menu": [
         {
-          "dish_id": "Q04-M01",
-          "ten_mon": "Cơm gạo lứt ức gà áp chảo",
+          "dish_id": "Q04-M10",
+          "ten_mon": "Cơm gạo lứt ức gà vị sả",
           "price_vnd": 55000,
-          "loai_mon": "Cơm / Xôi / Cháo",
-          "che_do_an": "Mặn; Gia cầm",
-          "huong_vi": "thanh đạm, ít dầu mỡ",
-          "allergens": [
-            "gia_cam"
-          ],
+          "allergens": [],
           "is_vegetarian": false,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": null,
+          "ingredients": "Ức gà 200 Gr, Xốt thịt nướng sả Barona 1 muỗng canh, Dầu olive 1 muỗng canh, Xà lách 30 Gr, Cà chua bi 30 Gr, Dưa leo 30 Gr, Rau mầm 10 Gr, Cơm gạo lứt 50 Gr",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1086",
+          "ingredient_tags": [
+            "gia_cam"
+          ]
         },
         {
           "dish_id": "Q04-M02",
           "ten_mon": "Cơm tấm sườn non chay",
           "price_vnd": 42000,
-          "loai_mon": "Món chay",
-          "che_do_an": "Chay",
-          "huong_vi": "đậm đà, không cay",
           "allergens": [
             "dau_nanh"
           ],
           "is_vegetarian": true,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": false,
+          "ingredients": "Cơm tấm gạo Tài Nguyên 4 chén, Sườn chay 4 miếng, Nước dừa tươi 1 trái, Sữa tươi 1/2 chén, Củ sắn cắt lát 120g, Đậu hũ trắng 1 miếng, Miến 20g, Thính gạo rang 1 muỗng, Boa rô cắt nhỏ 1 muỗng, Sả cây đập dập 3 cây, Lá dứa, nước dừa, tỏi ớt băm, Củ kiệu chua, hẹ lá, đồ chua, boarô phi có dầu 2 muỗng, ĂN KÈM: cà chua, dưa leo, Gia vị: tiêu, ngũ vị hương, đường, dầu ăn, dầu điều, Hạt nêm Aji-ngon Nấm, Nước tương Phú Sĩ",
+          "ingredient_status": "legacy_partial",
+          "source_dish_id": "VN-1779"
         },
         {
-          "dish_id": "Q04-M03",
-          "ten_mon": "Miến xào nấm thập cẩm chay",
+          "dish_id": "Q04-M11",
+          "ten_mon": "Miến xào chay",
           "price_vnd": 40000,
-          "loai_mon": "Món chay",
-          "che_do_an": "Chay",
-          "huong_vi": "thanh ngọt, không cay",
-          "allergens": [],
-          "is_vegetarian": true,
-          "in_stock": true
-        },
-        {
-          "dish_id": "Q04-M04",
-          "ten_mon": "Bún thái chay chua cay",
-          "price_vnd": 44000,
-          "loai_mon": "Món chay",
-          "che_do_an": "Chay",
-          "huong_vi": "chua cay nhẹ",
           "allergens": [
-            "cay",
+            "me",
             "dau_nanh"
           ],
           "is_vegetarian": true,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "miến",
+          "is_spicy": true,
+          "ingredients": "Thịt cua chay: 100g, Miến: 120g, Nấm mèo trắng: 5 tai, Nấm rơm búp: 50g, Cà rốt: 50g, Ớt Đà Lạt đỏ: 50g, Cần tây: 1 bẹ, Poa-rô: 1 cây, Cải bẹ xanh: 1 cây, Ớt sừng, Tiêu sọ xay, dầu ăn, dầu mè, Hạt nêm Aji-ngon Nấm, Nước tương Phú Sĩ",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1807"
         },
         {
-          "dish_id": "Q04-M05",
-          "ten_mon": "Gỏi cuốn tôm thịt (4 cuốn)",
-          "price_vnd": 45000,
-          "loai_mon": "Gỏi / Nộm / Cuốn",
-          "che_do_an": "Mặn; Hải sản; Thịt heo",
-          "huong_vi": "thanh mát, không cay",
+          "dish_id": "Q04-M12",
+          "ten_mon": "Bún bò Huế chay",
+          "price_vnd": 44000,
           "allergens": [
-            "hai_san",
-            "tom",
-            "thit_heo",
-            "dau_phong"
+            "dau_nanh"
+          ],
+          "is_vegetarian": true,
+          "in_stock": true,
+          "dish_category": "bún",
+          "is_spicy": true,
+          "ingredients": "Cải bắp 1 Cái, Cà rốt 1 Củ, Hành boa rô 2 Cây, cải trắng 1 Củ, Dưa leo 1 Trái, Sả 10 Cây, Bò viên 100 Gr, Thịt bò chay 20 Gr, Đậu hũ trắng 4 miếng, Chả lụa chay 200 Gr, Nấm rơm 200 Gr, Nấm đùi gà 200 Gr, Nấm bào ngư 300 Gr, Nấm linh chi nâu 100 Gr, Nấm hương 100 Gr, Hoa hồi 1 Bông, Thảo quả 1/2 Trái, Quế 1 Nhánh, Đinh hương 5 Cái, Bắp chuối 200 Gr, Rau muống bào 200 Gr, Bún tươi 2 Kg, Dầu điều 30 Gr, Hạt nêm chay Knorr Nấm hương 20 Gr, Muối 10 Gr, Đường phèn 50 Gr, Bột ngọt 20 Gr, Sa tế 15 Gr",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1730"
+        },
+        {
+          "dish_id": "Q04-M13",
+          "ten_mon": "Miến trộn bò xốt ngũ vị",
+          "price_vnd": 45000,
+          "allergens": [
+            "me"
           ],
           "is_vegetarian": false,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "miến",
+          "is_spicy": false,
+          "ingredients": "Miến 160 Gr, Thịt bò phi lê 300 Gr, Cà rốt 90 Gr, Cải bó xôi 90 Gr, Nấm mỡ 90 Gr, Ớt chuông vàng 90 Gr, Hành tây 90 Gr, Mè rang 10 Gr, Xốt thịt nướng ngũ vị Barona 95 Gr",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-2809",
+          "ingredient_tags": [
+            "thit_bo"
+          ]
         },
         {
-          "dish_id": "Q04-M06",
-          "ten_mon": "Cơm cá thu sốt cà ít béo",
+          "dish_id": "Q04-M14",
+          "ten_mon": "Cơm gạo lứt chiên nghêu",
           "price_vnd": 60000,
-          "loai_mon": "Cơm / Xôi / Cháo",
-          "che_do_an": "Mặn; Hải sản",
-          "huong_vi": "chua nhẹ, không cay",
           "allergens": [
             "hai_san",
+            "ngheu",
+            "trung",
+            "dau_nanh"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": false,
+          "ingredients": "Nghêu : 1kg, Cơm gạo lức : 500g, Đậu cô ve : 50g, Cà rốt : 50g, Hành tây : 1/2 củ, Trứng vịt muối luộc : 1 quả, Tỏi băm Hành, ngò Đường, dầu ăn, tiêu, Bột ngọt AJI-NO-MOTO, Nước tương Phú Sĩ, Hạt nêm Aji-ngon Heo",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1110",
+          "ingredient_tags": [
+            "thit_heo"
+          ]
+        },
+        {
+          "dish_id": "Q04-M07",
+          "ten_mon": "Cơm gạo lứt cá hồi vị sả",
+          "price_vnd": 65000,
+          "allergens": [
+            "ca",
+            "hai_san"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": null,
+          "ingredients": "Cá hồi 200 Gr, Xốt thịt nướng sả Barona 2 muỗng canh, Cơm gạo lứt 50 Gr, Bông cải xanh 40 Gr, Bông cải trắng 40 Gr, Măng tây 40 Gr, Bắp Mỹ 30 Gr, Tiêu xay 5 Gr, Dầu olive 1 muỗng canh, Rong biển 5 Gr",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1085"
+        },
+        {
+          "dish_id": "Q04-M08",
+          "ten_mon": "Cơm gạo lứt trộn đậu hũ",
+          "price_vnd": 53000,
+          "allergens": [
+            "dau_nanh",
+            "me",
+            "sua"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": true,
+          "ingredients": "Gạo lứt: 150g, Ham chay: 80g, Đậu hũ chiên: 1 miếng, Hạt sen: 100g, Nấm đông cô khô: 5 tai, Nấm mèo: 2 tai, Ớt chuông đỏ: 50g, Ớt chuông xanh: 50g, Hành boaro: 1 nhánh, Gừng: 1 củ nhỏ, Mè trắng rang: 1 muỗng, Sữa tươi không đường: 1/2 chén, RAU NÊM: Ngò rí, ĂN KÈM: Dưa cải chua, Gia vị: Tiêu, đường, dầu ăn, dầu mè, tương ớt, tương cà, Hạt nêm Aji-ngon Nấm, Giấm gạo lên men Ajinomoto",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1114"
+        },
+        {
+          "dish_id": "Q04-M09",
+          "ten_mon": "Cơm chiên sắc màu chay",
+          "price_vnd": 46000,
+          "allergens": [],
+          "is_vegetarian": true,
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": null,
+          "ingredients": "Cà rốt 50 Gr, Đậu Hà Lan 50 Gr, Ớt chuông đỏ 50 Gr, Cà rốt 50 Gr, Đậu que 50 Gr, Cơm nguội 400 Gr, Ớt chuông 50 Gr, Hành tím 3 Củ, Hành lá 3 Nhánh, Hạt nêm chay Knorr Nấm hương 1/2 muỗng cà phê",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1774"
+        }
+      ]
+    },
+    {
+      "restaurant_id": "Q05",
+      "name": "Bếp Tô Miền Trung & Nam",
+      "style": "Mì Quảng, bún riêu và hủ tiếu theo tô",
+      "shipping_fee_vnd": 17000,
+      "menu": [
+        {
+          "dish_id": "Q05-M01",
+          "ten_mon": "Mì Quảng gà tôm",
+          "price_vnd": 53000,
+          "allergens": [
+            "tom",
+            "hai_san",
+            "trung",
+            "dau_phong",
             "ca"
           ],
           "is_vegetarian": false,
-          "in_stock": true
+          "in_stock": true,
+          "dish_category": "mì",
+          "is_spicy": true,
+          "ingredients": "Mì quảng : 600g, Nước dùng : 800 ml, Cánh gà : 2 cái, Tôm đất : 150g, Trứng cút : 8 quả, Nghệ tươi băm : 1 muỗng, Hành tỏi băm : 1 muỗng, Củ nén : 20g, Đậu phộng rang : 70g, Ăn kèm: Rau cải con, bắp chuối bào, rau húng lũi, giá, bánh tráng nướng Hành lá, ớt xanh, tỏi củ lột vỏ, chanh, Muối, đường, bột nghệ, nước mắm, tương ớt Dầu ăn, dầu điều, Bột ngọt AJI-NO-MOTO, Hạt nêm Aji-ngon Gà",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-2831",
+          "ingredient_tags": [
+            "gia_cam"
+          ]
+        },
+        {
+          "dish_id": "Q05-M02",
+          "ten_mon": "Hủ tiếu chay",
+          "price_vnd": 43000,
+          "allergens": [
+            "dau_nanh"
+          ],
+          "is_vegetarian": true,
+          "in_stock": true,
+          "dish_category": "hủ tiếu",
+          "is_spicy": null,
+          "ingredients": "Khoai môn 100 Gr, Khoai lang 100 Gr, Nấm đông cô 200 Gr, Hành boa rô 80 Gr, Dầu ăn 20 ml, Hạt nêm chay 10 Gr, Vỏ hoành thánh 100 Gr, Tiêu 2 Gr, Đậu hũ trắng 300 Gr, Lê 150 Gr, Bắp Mỹ 200 Gr, Muối 13 Gr, Nước 2 Lít, Cà rốt 100 Gr, Củ cải trắng 100 Gr, Cải thảo 100 Gr, Đường phèn 10 Gr, Hủ tiếu 500 Gr",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1793"
+        },
+        {
+          "dish_id": "Q05-M03",
+          "ten_mon": "Hủ tiếu bò kho",
+          "price_vnd": 55000,
+          "allergens": [],
+          "is_vegetarian": false,
+          "in_stock": true,
+          "dish_category": "hủ tiếu",
+          "is_spicy": false,
+          "ingredients": "Thịt bò 400 Gr, Xốt bò kho Barona 1 Gói, Sả 20 Gr, Hành tím 20 Gr, Tỏi 20 Gr, Cà rốt 150 Gr, Hành tây 100 Gr, Nước cốt chanh 10 ml",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-2792",
+          "ingredient_tags": [
+            "thit_bo"
+          ]
+        },
+        {
+          "dish_id": "Q05-M04",
+          "ten_mon": "Hủ tiếu khô tôm thịt",
+          "price_vnd": 49000,
+          "allergens": [
+            "tom",
+            "hai_san",
+            "trung",
+            "dau_nanh"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true,
+          "dish_category": "hủ tiếu",
+          "is_spicy": true,
+          "ingredients": "Xương heo 500 Gr, 1, Tôm khô 20 Gr, Tôm tươi 300 Gr, Thịt thăn heo 300 Gr, Thịt heo bằm 200 Gr, Trứng cút 10 Quả, Tỏi 1 Củ, Nước tương 1 muỗng canh, Sốt tương đen 1 muỗng cà phê, Đường trắng 2.50 muỗng cà phê, Muối 2 muỗng cà phê, Dầu ăn 3 muỗng cà phê, Hành lá 1/2 Cây, Tiêu 1 muỗng cà phê, Hành tím băm 1/2 muỗng cà phê, Hủ tiếu 200 Gr, Tương ớt 2 muỗng cà phê, Giá đỗ 50 Gr, Bắp cải 50 Gr, Húng quế 15 Gr, Xà lách 50 Gr",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-2794",
+          "ingredient_tags": [
+            "thit_heo"
+          ]
+        },
+        {
+          "dish_id": "Q05-M05",
+          "ten_mon": "Bún riêu cua đồng",
+          "price_vnd": 49000,
+          "allergens": [
+            "cua",
+            "tom",
+            "hai_san",
+            "trung",
+            "dau_nanh"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true,
+          "dish_category": "bún",
+          "is_spicy": true,
+          "ingredients": "600 gram cua đồng, Bún, 3 bìa đậu, 300gr thịt heo xay thịt 3 chỉ sẽ béo hơn, 3-4 quả cà chua, 3 quả trứng vịt, 1 củ cải trắng, 1 miếng huyết 300gr, 3-400gr xương heo/ giò heo, 1 chút mắm tôm chanh ớt đường, Hành tím phi, hành lá, rau mùi hoa chuối, xà lách, ngò gai, hạt nêm, đường, bột ngọt, 2 muỗng màu điều",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-2742",
+          "ingredient_tags": [
+            "gia_cam",
+            "thit_heo"
+          ]
+        },
+        {
+          "dish_id": "Q05-M06",
+          "ten_mon": "Mì Quảng chay đậu hũ",
+          "price_vnd": 47000,
+          "allergens": [
+            "dau_phong",
+            "dau_nanh"
+          ],
+          "is_vegetarian": true,
+          "in_stock": true,
+          "dish_category": "mì",
+          "is_spicy": false,
+          "ingredients": "Củ cải trắng 1 Củ, Bắp cải 200 Gr, Bông cải trắng 100 Gr, Nấm bào ngư 200 Gr, Cà chua 1 Trái, Đậu hũ non 2 miếng, Hành boa rô 100 Gr, Ngò rí 100 Gr, Muối 3 muỗng cà phê, Bột ngọt 1/2 muỗng cà phê, Xà lách 150 Gr, Giá đỗ 100 Gr, Húng lũi 100 Gr, Sợi mì Quảng 500 Gr, Đậu phộng 100 Gr, Bánh đa 2 Cái, Tàu hũ ky 2 Lát, Nước tương 2 muỗng canh, Dầu ăn 4 muỗng canh, Hành lá 100 Gr",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1812"
+        }
+      ]
+    },
+    {
+      "restaurant_id": "Q06",
+      "name": "Bếp Phần Gọn",
+      "style": "Xôi, cháo, bún và mì Ý theo phần",
+      "shipping_fee_vnd": 19000,
+      "menu": [
+        {
+          "dish_id": "Q06-M01",
+          "ten_mon": "Xôi gà hành phi",
+          "price_vnd": 42000,
+          "allergens": [
+            "dau_nanh"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true,
+          "dish_category": "xôi",
+          "is_spicy": null,
+          "ingredients": "Gạo nếp 500 Gr, Đùi gà 600 Gr, Hành phi 2 muỗng canh, Hành lá 2 Nhánh, Hạt nêm 2 muỗng cà phê, Nước tương 1 muỗng canh, Tiêu 1/2 muỗng cà phê, Hành tím băm 1/2 muỗng cà phê, Tỏi 1/2 muỗng cà phê, Dầu ăn 50 ml",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1155",
+          "ingredient_tags": [
+            "gia_cam"
+          ]
+        },
+        {
+          "dish_id": "Q06-M02",
+          "ten_mon": "Cháo gà đậu xanh",
+          "price_vnd": 43000,
+          "allergens": [],
+          "is_vegetarian": false,
+          "in_stock": true,
+          "dish_category": "cháo",
+          "is_spicy": null,
+          "ingredients": "Thịt gà 1/2 Con, Gừng 1 Củ, Gạo nếp 50 Gr, Gạo tẻ 50 Gr, Hành lá 100 Gr, Đậu xanh 100 Gr, Muối 1 muỗng cà phê, Hạt nêm 1 muỗng cà phê, Tiêu 1/2 muỗng cà phê",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1022",
+          "ingredient_tags": [
+            "gia_cam"
+          ]
+        },
+        {
+          "dish_id": "Q06-M03",
+          "ten_mon": "Bún chay kiểu Huế",
+          "price_vnd": 45000,
+          "allergens": [
+            "dau_nanh"
+          ],
+          "is_vegetarian": true,
+          "in_stock": true,
+          "dish_category": "bún",
+          "is_spicy": false,
+          "ingredients": "Bí đỏ 500 Gr, Củ cải trắng 300 Gr, Thơm 1/2 Trái, Cải thảo 250 Gr, Cà chua 300 Gr, Nấm rơm 200 Gr, Đậu hũ chiên 2 miếng, Sả 4 Cây, Hành boa rô 5 Cây, Hạt nêm chay 2 muỗng canh, Đường phèn 1 muỗng canh, Dầu điều 1/2 muỗng cà phê, Bún tươi 500 Gr",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-1731"
+        },
+        {
+          "dish_id": "Q06-M04",
+          "ten_mon": "Mì Ý cua sốt kem",
+          "price_vnd": 65000,
+          "allergens": [
+            "cua",
+            "hai_san",
+            "sua",
+            "lua_mi"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true,
+          "dish_category": "mì",
+          "is_spicy": null,
+          "ingredients": "Cua biển 400 Gr, Mì Ý 200 Gr, Kem Whipping 200 ml, Cà chua 3 Trái, Tương cà 3 muỗng canh, Muối 1.5 muỗng cà phê, Tiêu 1 muỗng cà phê, Tỏi băm 4 muỗng canh, Dầu ô-liu 3 muỗng canh, Phô mai Ricotta 1 muỗng canh, Ngò tây",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-2862"
+        },
+        {
+          "dish_id": "Q06-M05",
+          "ten_mon": "Mì Ý xốt nấm và ba rọi",
+          "price_vnd": 58000,
+          "allergens": [
+            "dau_nanh",
+            "lua_mi",
+            "trung"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true,
+          "dish_category": "mì",
+          "is_spicy": true,
+          "ingredients": "Mì Ý: 80g, Ba rọi xông khói: 60g, Nấm đông cô tươi, nấm kim châm, nấm rơm: 200g, Đậu hà lan: 50g, Ngò rí: 4 nhánh, Rượu vang trắng: 1 muỗng, Tỏi băm nhuyễn, ớt cắt sợi, Dầu OLIU, tiêu xay, Nước tương Phú Sĩ, Xốt Mayonnaise Aji-mayo Vị Nguyên Bản, Hạt nêm Aji-ngon Heo",
+          "ingredient_status": "csv_partial",
+          "source_dish_id": "VN-2868",
+          "ingredient_tags": [
+            "thit_heo"
+          ]
+        },
+        {
+          "dish_id": "Q06-M06",
+          "ten_mon": "Cơm chiên trứng đơn giản",
+          "price_vnd": 40000,
+          "allergens": [
+            "trung"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true,
+          "dish_category": "cơm",
+          "is_spicy": false,
+          "ingredients": "cơm, trứng gà, rau cải",
+          "ingredient_status": "csv_listed",
+          "source_dish_id": "VN-1071"
         }
       ]
     }
