@@ -1,0 +1,421 @@
+{
+  "metadata": {
+    "description": "Danh sách 4 quán cơm trưa văn phòng mẫu cho lát cắt D2 (tên món và thuộc tính tham chiếu từ bộ món Việt vietnamese_dishes.csv; quán, giá VNĐ và phí giao hàng là dữ liệu mẫu có kiểm soát phục vụ demo và kiểm ràng buộc).",
+    "currency": "VND",
+    "created_at": "2026-11-27"
+  },
+  "restaurants": [
+    {
+      "restaurant_id": "Q01",
+      "name": "Bếp Cơm Nhà Văn Phòng",
+      "style": "Cơm phần mặn - chay đa dạng, ít dầu mỡ",
+      "shipping_fee_vnd": 16000,
+      "menu": [
+        {
+          "dish_id": "Q01-M01",
+          "ten_mon": "Cơm gà xối mỡ",
+          "price_vnd": 45000,
+          "loai_mon": "Cơm / Xôi / Cháo",
+          "che_do_an": "Mặn; Gia cầm",
+          "huong_vi": "mặn ngọt, thơm tỏi",
+          "allergens": [
+            "gia_cam"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q01-M02",
+          "ten_mon": "Cơm sườn nướng mật ong",
+          "price_vnd": 48000,
+          "loai_mon": "Cơm / Xôi / Cháo",
+          "che_do_an": "Mặn; Thịt heo",
+          "huong_vi": "mặn ngọt, thơm nướng",
+          "allergens": [
+            "thit_heo"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q01-M03",
+          "ten_mon": "Cơm cá hồi áp chảo sốt chanh dây",
+          "price_vnd": 68000,
+          "loai_mon": "Cơm / Xôi / Cháo",
+          "che_do_an": "Mặn; Hải sản",
+          "huong_vi": "chua ngọt nhẹ, béo",
+          "allergens": [
+            "hai_san",
+            "ca"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q01-M04",
+          "ten_mon": "Cơm thịt kho trứng cút",
+          "price_vnd": 42000,
+          "loai_mon": "Kho / Rim / Om / Hầm",
+          "che_do_an": "Mặn; Thịt heo",
+          "huong_vi": "mặn đậm đà, béo bùi",
+          "allergens": [
+            "thit_heo",
+            "trung"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q01-M05",
+          "ten_mon": "Cơm đậu hũ sốt cà chua chay",
+          "price_vnd": 36000,
+          "loai_mon": "Món chay",
+          "che_do_an": "Chay",
+          "huong_vi": "chua ngọt thanh đạm",
+          "allergens": [
+            "dau_nanh"
+          ],
+          "is_vegetarian": true,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q01-M06",
+          "ten_mon": "Cơm gà xé phay cay sa tế",
+          "price_vnd": 45000,
+          "loai_mon": "Cơm / Xôi / Cháo",
+          "che_do_an": "Mặn; Gia cầm",
+          "huong_vi": "cay, thơm thảo mộc",
+          "allergens": [
+            "gia_cam",
+            "cay"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q01-M07",
+          "ten_mon": "Cơm nấm đùi gà kho tiêu chay",
+          "price_vnd": 40000,
+          "loai_mon": "Món chay",
+          "che_do_an": "Chay",
+          "huong_vi": "mặn nhẹ, thơm tiêu",
+          "allergens": [],
+          "is_vegetarian": true,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q01-M08",
+          "ten_mon": "Cơm tôm rim mặn ngọt",
+          "price_vnd": 52000,
+          "loai_mon": "Kho / Rim / Om / Hầm",
+          "che_do_an": "Mặn; Hải sản",
+          "huong_vi": "mặn ngọt",
+          "allergens": [
+            "hai_san",
+            "tom"
+          ],
+          "is_vegetarian": false,
+          "in_stock": false
+        }
+      ]
+    },
+    {
+      "restaurant_id": "Q02",
+      "name": "Cơm Ngon Ba Miền",
+      "style": "Cơm phần truyền thống, giá bình dân",
+      "shipping_fee_vnd": 15000,
+      "menu": [
+        {
+          "dish_id": "Q02-M01",
+          "ten_mon": "Cơm thịt bò xào lúc lắc",
+          "price_vnd": 55000,
+          "loai_mon": "Xào / Chiên / Rán",
+          "che_do_an": "Mặn; Thịt bò",
+          "huong_vi": "mặn đậm đà, thơm tiêu",
+          "allergens": [
+            "thit_bo"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q02-M02",
+          "ten_mon": "Cơm cá lóc kho tộ",
+          "price_vnd": 46000,
+          "loai_mon": "Kho / Rim / Om / Hầm",
+          "che_do_an": "Mặn; Hải sản",
+          "huong_vi": "mặn ngọt, thơm hành",
+          "allergens": [
+            "ca",
+            "hai_san"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q02-M03",
+          "ten_mon": "Cơm gà kho gừng sả",
+          "price_vnd": 42000,
+          "loai_mon": "Kho / Rim / Om / Hầm",
+          "che_do_an": "Mặn; Gia cầm",
+          "huong_vi": "thơm gừng sả, không cay",
+          "allergens": [
+            "gia_cam"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q02-M04",
+          "ten_mon": "Cơm rau củ xào thập cẩm đậu hũ chay",
+          "price_vnd": 35000,
+          "loai_mon": "Món chay",
+          "che_do_an": "Chay",
+          "huong_vi": "thanh đạm, không cay",
+          "allergens": [
+            "dau_nanh"
+          ],
+          "is_vegetarian": true,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q02-M05",
+          "ten_mon": "Cơm ba rọi chiên sả ớt",
+          "price_vnd": 44000,
+          "loai_mon": "Xào / Chiên / Rán",
+          "che_do_an": "Mặn; Thịt heo",
+          "huong_vi": "cay, mặn giòn",
+          "allergens": [
+            "thit_heo",
+            "cay"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q02-M06",
+          "ten_mon": "Cơm trứng chiên thịt bằm + canh cải",
+          "price_vnd": 38000,
+          "loai_mon": "Cơm / Xôi / Cháo",
+          "che_do_an": "Mặn; Thịt heo",
+          "huong_vi": "nhẹ nhàng, không cay",
+          "allergens": [
+            "thit_heo",
+            "trung"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q02-M07",
+          "ten_mon": "Cơm bò xào sả ớt",
+          "price_vnd": 52000,
+          "loai_mon": "Xào / Chiên / Rán",
+          "che_do_an": "Mặn; Thịt bò",
+          "huong_vi": "cay, thơm sả",
+          "allergens": [
+            "thit_bo",
+            "cay"
+          ],
+          "is_vegetarian": false,
+          "in_stock": false
+        }
+      ]
+    },
+    {
+      "restaurant_id": "Q03",
+      "name": "Bún Phở & Cơm Đĩa Phố Cổ",
+      "style": "Món nước nóng & cơm đĩa nhanh",
+      "shipping_fee_vnd": 20000,
+      "menu": [
+        {
+          "dish_id": "Q03-M01",
+          "ten_mon": "Phở bò tái chín",
+          "price_vnd": 50000,
+          "loai_mon": "Phở / Bún / Mì",
+          "che_do_an": "Mặn; Thịt bò",
+          "huong_vi": "ngọt thanh, thơm thảo mộc",
+          "allergens": [
+            "thit_bo"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q03-M02",
+          "ten_mon": "Bún chả Hà Nội",
+          "price_vnd": 48000,
+          "loai_mon": "Phở / Bún / Mì",
+          "che_do_an": "Mặn; Thịt heo",
+          "huong_vi": "chua ngọt, thơm nướng",
+          "allergens": [
+            "thit_heo"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q03-M03",
+          "ten_mon": "Bún bò Huế cay nồng",
+          "price_vnd": 52000,
+          "loai_mon": "Phở / Bún / Mì",
+          "che_do_an": "Mặn; Thịt bò; Thịt heo",
+          "huong_vi": "cay, đậm đà mắm ruốc",
+          "allergens": [
+            "thit_bo",
+            "thit_heo",
+            "cay",
+            "mam_ruoc"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q03-M04",
+          "ten_mon": "Bún thịt nướng đậu phộng",
+          "price_vnd": 45000,
+          "loai_mon": "Phở / Bún / Mì",
+          "che_do_an": "Mặn; Thịt heo",
+          "huong_vi": "thơm nướng, béo bùi đậu phộng",
+          "allergens": [
+            "thit_heo",
+            "dau_phong"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q03-M05",
+          "ten_mon": "Cơm gà luộc lá chanh",
+          "price_vnd": 46000,
+          "loai_mon": "Cơm / Xôi / Cháo",
+          "che_do_an": "Mặn; Gia cầm",
+          "huong_vi": "thanh đạm, không cay",
+          "allergens": [
+            "gia_cam"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q03-M06",
+          "ten_mon": "Bún trộn chay nấm đậu hũ",
+          "price_vnd": 40000,
+          "loai_mon": "Món chay",
+          "che_do_an": "Chay",
+          "huong_vi": "chua ngọt, không cay",
+          "allergens": [
+            "dau_nanh"
+          ],
+          "is_vegetarian": true,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q03-M07",
+          "ten_mon": "Bún hải sản chua cay",
+          "price_vnd": 58000,
+          "loai_mon": "Phở / Bún / Mì",
+          "che_do_an": "Mặn; Hải sản",
+          "huong_vi": "cay, chua ngọt",
+          "allergens": [
+            "hai_san",
+            "tom",
+            "muc",
+            "cay"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true
+        }
+      ]
+    },
+    {
+      "restaurant_id": "Q04",
+      "name": "Bếp Chay & Eat Clean Xanh",
+      "style": "Chuyên món chay và suất ăn ít béo",
+      "shipping_fee_vnd": 18000,
+      "menu": [
+        {
+          "dish_id": "Q04-M01",
+          "ten_mon": "Cơm gạo lứt ức gà áp chảo",
+          "price_vnd": 55000,
+          "loai_mon": "Cơm / Xôi / Cháo",
+          "che_do_an": "Mặn; Gia cầm",
+          "huong_vi": "thanh đạm, ít dầu mỡ",
+          "allergens": [
+            "gia_cam"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q04-M02",
+          "ten_mon": "Cơm tấm sườn non chay",
+          "price_vnd": 42000,
+          "loai_mon": "Món chay",
+          "che_do_an": "Chay",
+          "huong_vi": "đậm đà, không cay",
+          "allergens": [
+            "dau_nanh"
+          ],
+          "is_vegetarian": true,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q04-M03",
+          "ten_mon": "Miến xào nấm thập cẩm chay",
+          "price_vnd": 40000,
+          "loai_mon": "Món chay",
+          "che_do_an": "Chay",
+          "huong_vi": "thanh ngọt, không cay",
+          "allergens": [],
+          "is_vegetarian": true,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q04-M04",
+          "ten_mon": "Bún thái chay chua cay",
+          "price_vnd": 44000,
+          "loai_mon": "Món chay",
+          "che_do_an": "Chay",
+          "huong_vi": "chua cay nhẹ",
+          "allergens": [
+            "cay",
+            "dau_nanh"
+          ],
+          "is_vegetarian": true,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q04-M05",
+          "ten_mon": "Gỏi cuốn tôm thịt (4 cuốn)",
+          "price_vnd": 45000,
+          "loai_mon": "Gỏi / Nộm / Cuốn",
+          "che_do_an": "Mặn; Hải sản; Thịt heo",
+          "huong_vi": "thanh mát, không cay",
+          "allergens": [
+            "hai_san",
+            "tom",
+            "thit_heo",
+            "dau_phong"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true
+        },
+        {
+          "dish_id": "Q04-M06",
+          "ten_mon": "Cơm cá thu sốt cà ít béo",
+          "price_vnd": 60000,
+          "loai_mon": "Cơm / Xôi / Cháo",
+          "che_do_an": "Mặn; Hải sản",
+          "huong_vi": "chua nhẹ, không cay",
+          "allergens": [
+            "hai_san",
+            "ca"
+          ],
+          "is_vegetarian": false,
+          "in_stock": true
+        }
+      ]
+    }
+  ]
+}
