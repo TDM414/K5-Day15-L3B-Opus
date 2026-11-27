@@ -33,7 +33,7 @@
 
 - **Người thứ hai chấm thử:** *(chờ thành viên thứ 2 trong nhóm — Hồng Gấm / Xuân Dương — chấm độc lập 5 output từ bản chạy thử sau khi nối model hoặc trước chốt CP2, mục tiêu khớp ≥ 4/5)*.
 - LLM chấm (nếu có): Không dùng LLM chấm ở bộ metric này (2 metric code + 2 metric người chấm).
-- **Chuẩn "đạt"** (chép nguyên từ `spec.md` §7, chốt trước 19:30 Thứ Sáu 27/11): **"Đạt khi ≥ 80% tổng số câu thử qua (`≥ 12/15`), đồng thời đạt cả 4 ngưỡng metric trong `eval/metric_spec.yaml`: `100%` câu có giỏ hợp lệ đạt 2 metric `code` (`khong_bia_mon_va_du_suat` và `dung_kieng_va_ngan_sach_gom_ship`), `≥ 85%` câu liên quan đạt `dung_luat_tui_mu_va_quay_xe`, và `100%` câu `tu_choi` (`3/3`) cùng `≥ 80%` câu `kho` thiếu thông tin/vô nghiệm đạt `xu_ly_mo_ho_va_tu_choi_an_toan`."**
+- **Chuẩn "đạt"** (chép nguyên từ `spec.md` §7, chốt trước 19:30 Thứ Sáu 27/11): **"Đạt khi ≥ 80% tổng số câu thử qua, đồng thời đạt cả 4 ngưỡng metric trong `eval/metric_spec.yaml`: `100%` câu có giỏ hợp lệ đạt 2 metric `code` (`khong_bia_mon_va_du_suat` và `dung_kieng_va_ngan_sach_gom_ship`), `≥ 85%` câu liên quan đạt `dung_luat_tui_mu_va_quay_xe`, và `100%` câu `tu_choi` cùng `≥ 80%` câu `kho` thiếu thông tin/vô nghiệm đạt `xu_ly_mo_ho_va_tu_choi_an_toan`."**
 
 ## 4\. Lệnh
 
