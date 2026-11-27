@@ -50,7 +50,7 @@ function readLine(line, sharedBudget) {
     } else if (/^(ăn\s+)?(gì|món gì)\s+cũng\s+được$/i.test(part)) {
       member.blind = true;
     } else if (/^(dị ứng|kiêng|không( thích| ăn)?)\s+/i.test(part)) {
-      avoids.push(part.replace(/^(dị ứng|kiêng|không( thích| ăn)?)\s+/i, ""));
+      avoids.push(part.replace(/^(kiêng|không( thích| ăn)?)\s+/i, ""));
     } else {
       wishes.push(part.replace(/^muốn\s+(ăn\s+)?/i, ""));
     }
@@ -61,12 +61,19 @@ function readLine(line, sharedBudget) {
 }
 
 function membersForCheck() {
-  return state.members.map(member => ({
-    name: member.name.trim(),
-    budget_vnd: inputMoney(member.budget),
-    vegetarian: member.vegetarian,
-    avoid_allergens: member.avoid.split(/[,;]+/).map(word => word.trim()).filter(Boolean),
-  }));
+  const allergyPrefix = /^dị ứng\s+/i;
+  return state.members.map(member => {
+    const terms = member.avoid.split(/[,;]+/).map(word => word.trim()).filter(Boolean);
+    return {
+      name: member.name.trim(),
+      budget_vnd: inputMoney(member.budget),
+      vegetarian: member.vegetarian,
+      avoid_allergens: terms.filter(term => !allergyPrefix.test(term)),
+      allergies: terms.filter(term => allergyPrefix.test(term))
+        .flatMap(term => term.replace(allergyPrefix, "").split(/\s+và\s+/i)),
+      preferred_dish: member.blind ? "" : member.wants.trim(),
+    };
+  });
 }
 
 async function request(action, fields = {}) {
@@ -167,7 +174,7 @@ function renderMembers() {
       <div class="member-grid">
         ${memberField(index, "name", "Tên")}
         ${memberField(index, "budget", "Ngân sách gồm ship", "70.000đ")}
-        ${memberField(index, "avoid", "Điều kiêng hoặc không thích", "Ví dụ đậu phộng, cay")}
+        ${memberField(index, "avoid", "Dị ứng hoặc điều kiêng", "Ví dụ dị ứng đậu phộng, cay")}
         ${memberField(index, "wants", "Món muốn ăn", "Ví dụ cơm gà")}
       </div>
       <div class="member-actions">
@@ -197,7 +204,11 @@ function renderRestaurants() {
     </article>`;
   }).join("");
   return `<div class="cart-heading"><span class="status-tag">Menu mẫu</span></div>
-    ${rows ? `<div class="restaurant-list">${rows}</div>` : alert("Chưa có quán nào đáp ứng đủ điều kiện và ngân sách của cả nhóm. Quay lại kiểm tra thông tin từng người.")}
+    ${rows ? `<div class="restaurant-list">${rows}</div>` : alert(
+      membersForCheck().some(member => member.allergies.length)
+        ? "Chưa tìm được quán phù hợp. Với món thiếu thông tin dị ứng, cần xác nhận thành phần trước khi chọn."
+        : "Chưa có quán nào đáp ứng đủ điều kiện và ngân sách của cả nhóm. Quay lại kiểm tra thông tin từng người."
+    )}
     <div class="actions">${button("Quay lại xác nhận", "back")}</div>`;
 }
 

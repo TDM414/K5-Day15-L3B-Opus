@@ -1,18 +1,23 @@
 # Data card — dữ liệu bản chạy thử dùng
 
-> Cập nhật cho **CP2** (Pipeline 8 bước D2). Toàn bộ dữ liệu gốc được giữ bất biến trong `data/raw/` và `data/sources/` (không commit file thô lớn); dữ liệu bản chạy thử sử dụng nằm trong `data/`.
+> Menu mẫu hiện dùng phiên bản **4**. Dữ liệu công thức nằm riêng trong `data/processed/vietnamese_dishes.csv`.
 
 ## Dataset 1 · `data/restaurants_sample.json` (Danh sách quán & menu cơm trưa văn phòng D2)
 
 |  |  |
 | --- | --- |
 | Dùng để làm gì | Nguồn dữ liệu chính cho công cụ gợi ý tối đa 3 quán, đọc menu, dựng giỏ (kèm túi mù) và code kiểm tra ràng buộc món/tồn hàng/dị ứng/ngân sách gồm ship (`codebase/tools.py`). |
-| Từ đâu | Tên món Việt và thuộc tính ẩm thực tham chiếu từ bộ món ăn Việt đã lọc sạch (`data/processed/vietnamese_dishes.csv`); tên 4 quán mẫu, giá bán VNĐ, phí giao hàng và trạng thái còn hàng (`in_stock`) do nhóm thiết kế có kiểm soát cho bài toán D2. |
-| Xử lý những bước gì | Chọn 4 quán đại diện (`Q01` Bếp Cơm Nhà Văn Phòng, `Q02` Cơm Ngon Ba Miền, `Q03` Bún Phở & Cơm Đĩa Phố Cổ, `Q04` Bếp Chay & Eat Clean Xanh); chuẩn hóa schema JSON gồm `restaurant_id`, `shipping_fee_vnd`, `dish_id`, `ten_mon`, `price_vnd`, `che_do_an`, `huong_vi`, `allergens`, `is_vegetarian`, `in_stock`; cài 2 món hết hàng (`in_stock: false`) để kiểm thử kịch bản thực tế. |
-| Số dòng / số cột | **4 quán** · **28 món ăn** (mỗi món có 9 trường chuẩn hóa). |
+| Từ đâu | 52 món có mã `VN-…` từ `data/processed/vietnamese_dishes.csv`. Tên quán, giá bán VNĐ, phí giao hàng và trạng thái tồn kho do nhóm mô phỏng. |
+| Xử lý những bước gì | Giữ 33 món đã đối chiếu nguồn, thay 19 món thiếu nguồn bằng suất ăn khác có công thức và cấp mã món mới. `metadata.serving_size: 1` áp dụng cho mọi món. Khẩu phần gốc tra trong CSV qua `source_dish_id`. |
+| Số dòng | **6 quán · 52 món · 2 món hết hàng**. |
 | Phiên bản / ngày lấy | 2026-11-27 |
 | Nhãn | **hỗn hợp (tên món & thuộc tính tham chiếu thật + giá/quán mẫu có kiểm soát cho D2)** — ghi rõ để không nhầm với giá real-time trên app thương mại. |
-| Giới hạn | Không phản ánh biến động giá và tồn kho trực tiếp từ GrabFood/ShopeeFood; số lượng quán mẫu cố định 4 quán (gợi ý tối đa 3 quán/lượt); không chứa thông tin khuyến mãi/voucher app. |
+| Giới hạn | Gợi ý tối đa 3 quán/lượt. Giá và tồn kho chỉ dùng trong demo. Công thức tham chiếu có thể thiếu thông tin về gia vị pha sẵn hoặc chế biến chung. |
+
+- `source_dish_id` nối mọi món với công thức tương ứng hoặc công thức phần món chính. `ingredients` giữ nguyên văn toàn bộ cột `thanh_phan`. Chín món CP2 đã nối vẫn có trạng thái `legacy_partial` vì công thức tham chiếu chưa mô tả đầy đủ suất của quán mẫu.
+- `allergens` giữ nhãn dị ứng nhận diện được. `ingredient_tags` chứa nguồn đạm hoặc nguyên liệu dùng để kiểm điều kiêng. `is_vegetarian` là cờ ăn chay. Các số trung bình trên 100 g nguyên liệu trong CSV không được dùng làm số dinh dưỡng cho một suất.
+- `is_spicy` là `true` hoặc `false` khi có đủ căn cứ trong dữ liệu, và `null` khi nguồn chưa rõ. Món có `csv_partial` chứa thành phần tham chiếu còn thiếu chi tiết. `csv_listed` biểu thị danh sách nguyên liệu đơn giản được ghi rõ trong nguồn để đối chiếu trong demo. Với yêu cầu dị ứng rõ ràng, hệ thống yêu cầu xác nhận thành phần cho món thiếu chi tiết. Thành phần tham chiếu và mảng `allergens` rỗng không xác nhận an toàn khi đặt thật.
+- Bộ kiểm sử dụng nguyên liệu CSV của các món bổ sung. Khi kiểm món CP2, bộ kiểm dựa vào thông tin đã khai báo trong menu mẫu. Ngữ cảnh chọn món của model chỉ nhận các trường phục vụ lựa chọn và kiểm ràng buộc.
 
 ## Dataset 2 · `data/processed/vietnamese_dishes.csv` (Kho món ăn Việt Nam đã kiểm toán — dữ liệu nền tham chiếu)
 

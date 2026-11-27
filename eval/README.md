@@ -5,7 +5,7 @@
 
 ## 1\. Dataset → xử lý
 
-- Dùng `data/restaurants_sample.json` (4 quán cơm trưa văn phòng mẫu, 28 món ăn kèm giá VNĐ, phí giao hàng, trạng thái `in_stock`, `allergens`, `is_vegetarian`), tham chiếu tên món và thuộc tính ẩm thực từ bộ món Việt đã làm sạch `data/processed/vietnamese_dishes.csv` (3.732 món × 23 cột, chi tiết `data/DATA_CARD.md`).
+- Dùng `data/restaurants_sample.json` phiên bản 4 (6 quán, 52 món theo phần, đủ mã tham chiếu CSV). Bộ câu thử CP2 vẫn giữ dữ kiện của menu lúc chốt. Một số câu gọi tên hoặc mã món đã thay, ví dụ B09, B10, B14 và B15. Khi chấm hoặc đối chiếu các lượt, ghi phiên bản menu và lưu ý khác biệt dữ liệu. Chi tiết ở `data/DATA_CARD.md`.
 
 ## 2\. Bộ câu thử dựng ra sao
 

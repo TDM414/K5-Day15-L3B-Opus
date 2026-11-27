@@ -135,7 +135,9 @@ flowchart TD
 
 | Thời điểm | Đổi gì | Vì sao (trỏ về câu thử / lỗi / bằng chứng nào) |
 |---|---|---|
-|  |  |  |
+| 27/11 23:28 | Mở rộng menu mẫu lên 6 quán, 52 món theo phần từ CSV món Việt. | Tăng lựa chọn đổi món và giữ dữ kiện của B08–B10 về giá, ngân sách và tồn kho. |
+| 27/11 23:34 | Gọn schema menu và nhập nguyên văn thành phần cho 33 món đối chiếu được với CSV. | Giảm trường trùng, giữ nguồn và thu gọn menu đưa vào prompt. |
+| 27/11 23:39 | Thay 19 món thiếu nguồn bằng suất ăn có công thức CSV. | Mọi món đều có mã tham chiếu. Một số tên và mã món của bộ thử CP2 thuộc menu cũ. |
 
 **Sau CP4 (đến 23:59 Thứ Bảy 28/11)** (sửa theo góp ý — không sửa chuẩn "đạt", câu thử, số bằng chứng, kết quả các lượt đã chạy)
 

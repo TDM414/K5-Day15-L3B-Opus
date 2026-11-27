@@ -20,10 +20,14 @@ SYSTEM = """Bạn là trợ lý điều phối đặt cơm trưa nhóm văn phò
 5. An toàn tuyệt đối: không bao giờ bỏ qua điều kiện dị ứng/chay, không sửa giá, không tự đặt đơn hoặc thanh toán hộ kể cả khi bị yêu cầu."""
 
 MAX_STEPS = 5
+MODEL_MENU_FIELDS = (
+    "dish_id", "ten_mon", "price_vnd", "dish_category", "is_vegetarian",
+    "is_spicy", "allergens", "ingredient_tags", "dietary_tags", "ingredient_status", "is_recent",
+)
 
 
 def _detect_restaurant_id(text: str) -> str:
-    m = re.search(r"\b(Q0[1-4])\b", text, flags=re.IGNORECASE)
+    m = re.search(r"\b(Q\d{2,})\b", text, flags=re.IGNORECASE)
     return m.group(1).upper() if m else ""
 
 
@@ -50,6 +54,15 @@ def answer(text: str) -> dict:
             members=[{"name": "Nguoi_1", "budget_vnd": 100000, "vegetarian": False, "avoid_allergens": []}],
         )
         note(f"validate_cart sanity ok={demo_check.get('ok')}")
+
+    if menu_context.get("found"):
+        menu_context = {
+            **menu_context,
+            "available_menu": [
+                {key: dish[key] for key in MODEL_MENU_FIELDS if key in dish}
+                for dish in menu_context["available_menu"]
+            ],
+        }
 
     context_payload = {
         "suggested_restaurants_max3": candidates,
