@@ -1,16 +1,13 @@
-# Canvas — [tên nhóm] · Track [A–F]
+# Canvas — Opus · Track D · D2: Đặt đơn nhóm có ràng buộc ăn uống
 
-> Điền ở guide bước 1.4. CP1 17:00 Thứ Sáu 27/11: nộp bản đầu, đủ 7 dòng (dòng 4 được ghi giả thuyết + nguồn sẽ kiểm).
-> CP2 19:30 Thứ Sáu 27/11: cập nhật (số bằng chứng đầu, lát cắt đã chốt) và điền dòng "Đã đổi gì so với CP1".
-> Track F: chép thêm thẻ đề của nhóm (khung trong file track F) xuống dưới bảng này.
 
 | # | Dòng | Nhóm điền |
 |---|---|---|
-| 1 | Track + lát cắt dự kiến | |
-| 2 | Người dùng chính (một vai cụ thể — không phải "học viên nói chung") | |
-| 3 | Pain một câu: ai — đang làm gì — vướng đâu — hậu quả | |
-| 4 | Bằng chứng đầu — CP1: giả thuyết + nguồn sẽ kiểm · CP2: số đầu tiên + 1 trích dẫn | |
-| 5 | **Lát cắt MỘT CÂU** (1 người dùng · 1 việc · 1 quyết định AI · 1 kết quả) | |
-| 6 | AI tự làm đến đâu + 1 dòng lý do: sai thì ai chịu gì | |
-| 7 | Phân công có tên | |
-| — | *(CP2)* Đã đổi gì so với CP1 | |
+| 1 | Track + lát cắt dự kiến | D — Thương mại điện tử, hướng D2: đề xuất các suất cơm trưa riêng trong một đơn từ menu một quán, theo ngân sách từng người gồm phí giao hàng, điều kiện ăn uống và sở thích, có chế độ chọn hộ khi được yêu cầu. |
+| 2 | Người dùng chính (một vai cụ thể — không phải "học viên nói chung") | Nhân viên được giao đặt cơm trưa hộ nhóm đồng nghiệp, mỗi người có mức chi và yêu cầu ăn uống riêng, có người chưa biết chọn món. |
+| 3 | Pain một câu: ai — đang làm gì — vướng đâu — hậu quả | Người đặt cơm trưa hộ nhóm đồng nghiệp phải hỏi và đối chiếu ngân sách, yêu cầu ăn uống của từng người với menu rồi chia phí giao hàng, dễ mất thời gian hỏi lại và sửa giỏ khi có người chưa biết ăn gì hoặc món đã chọn vượt mức chi của họ. |
+| 4 | Bằng chứng đầu — CP1: giả thuyết + nguồn sẽ kiểm · CP2: số đầu tiên + 1 trích dẫn | Chưa thu bằng chứng; giả thuyết là việc tổng hợp ngân sách từng người, điều kiện ăn uống và lựa chọn của người “ăn gì cũng được” khiến người đặt hộ phải hỏi lại hoặc sửa giỏ; dự kiến phỏng vấn ít nhất 3 người ngoài nhóm từng đặt cơm hộ đồng nghiệp trong tháng qua, kiểm giả thuyết nếu ít nhất 2/3 người kể được một lần cụ thể gặp việc này, ghi số lượt hỏi lại, thời gian và trích dẫn đã ẩn danh; xem evidence/hypothesis.md. |
+| 5 | **Lát cắt MỘT CÂU** (1 người dùng · 1 việc · 1 quyết định AI · 1 kết quả) | Một nhân viên đặt các suất cơm trưa riêng cho nhóm từ menu một quán nhận giỏ do AI đề xuất theo ngân sách từng người gồm phí giao hàng chia đều, điều kiện ăn uống và sở thích, có chọn hộ khi được yêu cầu, để duyệt phương án đã được code kiểm ràng buộc hoặc biết vì sao chưa có giỏ hợp lệ. |
+| 6 | AI tự làm đến đâu + 1 dòng lý do: sai thì ai chịu gì | AI gợi ý, người quyết: chỉ đề xuất giỏ và cho đổi món để người đặt duyệt, không đặt đơn hay thanh toán; code kiểm món tồn tại, đủ suất, điều kiện bắt buộc và mức chi từng người gồm phần phí giao hàng, vì chọn sai có thể ảnh hưởng người ăn hoặc làm họ vượt ngân sách. |
+| 7 | Phân công có tên | (Dự kiến)Trần Thị Hồng Gấm — làm rõ yêu cầu, thiết kế luồng giao diện, tổng hợp phỏng vấn và tài liệu sản phẩm; Trần Duy Mạnh — chuẩn bị menu mẫu, xây luồng đọc yêu cầu và đề xuất món, đo token và chi phí, nộp checkpoint; Đinh Lê Thịnh — xây API, tính tiền và chia phí giao hàng, kiểm ràng buộc bằng code, ghi log và chạy bộ câu thử; Nguyễn Xuân Dương — xây giao diện nhập yêu cầu và hiển thị giỏ, kết nối API, phối hợp hoàn thiện chọn hộ và đổi món, kiểm thử toàn luồng và quay video demo. |
+| — | *(CP2)* Đã đổi gì so với CP1 | Chưa đến CP2; cập nhật sau khi tổng hợp bằng chứng đầu tiên. |
