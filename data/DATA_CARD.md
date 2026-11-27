@@ -1,23 +1,15 @@
 # Data card — dữ liệu bản chạy thử dùng
 
-> Điền ở guide bước 2.4 (bản đầu ở CP2, đủ ở CP3). Ôn lại: ngày 6 · lab ngày 6. Chấm ở rubric R4.
-> Một trang. Mỗi dataset một mục. Dữ liệu chạy thử (bài mẫu, thông báo mẫu, đoạn transcript…) để trong thư mục `data/` này.
-> Không commit nguyên tài liệu khoá, dữ liệu cá nhân thật hay nguyên file data BTC cấp — chỉ đoạn trích ngắn, bản viết lại, hoặc số đã tổng hợp.
+> Cập nhật theo chuẩn rubric R4 và quy trình kiểm toán `vibe-data`. Nhóm **không tự crawl dữ liệu từ trang web thương mại**, mà tái sử dụng có trích dẫn và làm sạch từ bộ dữ liệu nghiên cứu công khai trên GitHub. Dữ liệu sạch phục vụ ứng dụng nằm tại `data/processed/vietnamese_dishes.csv`.
 
-## Dataset 1 · [tên]
+## Dataset 1 · `data/processed/vietnamese_dishes.csv` (Danh mục món ăn Việt Nam đã làm sạch từ ViFoodRec)
 
 | | |
 |---|---|
-| Dùng để làm gì | nguồn cho công cụ `…` · bộ câu thử · đào bằng chứng |
-| Từ đâu | data BTC cấp (`…` trong repo đề) · tài liệu khoá (trích / viết lại) · nhóm tự viết · sinh có seed |
-| Xử lý những bước gì | lọc __ · làm sạch __ · ẩn danh __ · chia __ (script: `…`) |
-| Số dòng / số đoạn | __ |
-| Phiên bản / ngày lấy | __ |
-| Nhãn | thật · `synthetic` |
-| Giới hạn | thiếu gì, lệch về phía nào |
-
-**Data `synthetic` (nhóm tự sinh):** ghi cách sinh (prompt / script), seed, người kiểm, số dòng đã kiểm tay. Data tự dựng **không phải bằng chứng pain**.
-
-## Dataset 2 · [tên]
-
-…
+| Dùng để làm gì | Nguồn tri thức chính cho công cụ tra cứu / gợi ý món ăn Việt Nam (`codebase/tools.py`) |
+| Từ đâu (Chứng minh nguồn) | **Repo nghiên cứu công khai ViFoodRec:** [`QuocAn55/A-New-Dataset-and-Empirical-Evaluation-for-Vietnamese-Food-Recommendation-System`](https://github.com/QuocAn55/A-New-Dataset-and-Empirical-Evaluation-for-Vietnamese-Food-Recommendation-System) (Nhóm tác giả UIT DS300: Chi Thanh Dang, Thuy Hong Thi Dang, Quoc An Tran Huynh).<br>• **Branch / Commit SHA:** `main` · `126caa3a8b58708a09b2b2e119ff4923b6f06d82` (cập nhật `2024-03-14`).<br>• **File trích xuất từ repo gốc:** `Data/Clean Dataset/foods.csv` (4.000 dòng) ghép bổ sung cột `Cách dùng` & `Mách nhỏ` từ `Data/Raw Dataset/food_dataset_mnmnweb.csv` (1.213 dòng).<br>• **Đối chiếu dinh dưỡng tham khảo:** *Bảng Thành phần Thực phẩm Việt Nam — Viện Dinh dưỡng Quốc gia* qua bản số hóa mở [`thanhphuong080199/foodscan-vn`](https://github.com/thanhphuong080199/foodscan-vn) (giấy phép `MIT`). |
+| Xử lý những bước gì | (1) **Loại bỏ hoàn toàn dữ liệu random giả** trong bộ gốc ViFoodRec: bỏ `ratings.csv` (182.678 dòng phân bố đều nhân tạo 0–5) và bỏ 5 cột `calories/fat/fiber/sugar/protein` sinh ngẫu nhiên; thay bằng đối chiếu dinh dưỡng thật theo nguyên liệu từ bảng Viện Dinh dưỡng VN (khớp 2.784/3.732 món). (2) Sửa triệt để lỗi hỏng chữ upstream (`muỗngl` → `ml`, `muỗngiếng` → `miếng`, kiểm chứng còn `0` lỗi). (3) Chuẩn hóa 100% Unicode Tiếng Việt về `NFC`, sửa lỗi chữ hoa/thường NFD. (4) Lọc bỏ 107 món ngoại (pizza, sushi, spaghetti, latte, cheesecake...), 158 bản ghi trùng lặp và 3 bản ghi thiếu thành phần. (5) Phân loại lại 13 nhóm món (`loai_mon`) thay cho nhãn gốc bị gán lệch 95% là `Món mặn`. (6) Trích xuất tất định `nhiet_do_phuc_vu` (nóng/ấm/nguội/lạnh), `vung_mien`, `huong_vi`, `che_do_an` (script xử lý cục bộ: `scripts/build_vietnamese_dishes_csv.py`). |
+| Số dòng / số cột | **3.732 món ăn Việt Nam** × **23 cột** (`dish_id`, `ten_mon`, `thanh_phan`, `loai_mon`, `nhiet_do_phuc_vu`, `vung_mien`, `huong_vi`, `che_do_an`, `khau_phan`, `thoi_gian_nau_phut`, `cach_dung`, `mach_nho`, `mo_ta_ngan`, `tags`, các cột dinh dưỡng tham khảo NIN, `nguon_du_lieu`, `ngay_xu_ly`). |
+| Phiên bản / ngày lấy | Repo gốc commit `126caa3` (`2024-03-14`) · ngày xử lý & kiểm toán: `2026-11-27` |
+| Nhãn | **thật** (tên món, thành phần, cách dùng, mách nhỏ trích từ bộ nghiên cứu ViFoodRec; dinh dưỡng tham khảo đối chiếu bảng Viện Dinh dưỡng VN; đã loại bỏ toàn bộ cột synthetic random của bộ gốc). |
+| Giới hạn | (1) **Bản quyền:** Repo ViFoodRec gốc chưa đính kèm file `LICENSE` trên GitHub và dữ liệu gốc được tác giả thu thập từ `monngonmoingay.com` & `cooky.vn` — chỉ dùng cho mục đích nghiên cứu/học thuật trong khuôn khổ hackathon và cần xin phép nếu triển khai thương mại công khai. (2) Không có cột đánh giá sao thật (vì `ratings.csv` gốc là random đều). (3) Cột `cach_dung` có mặt ở 1.096/3.732 món; 1.757/3.732 món chưa ghi rõ nhiệt độ phục vụ trong nguồn gốc. (4) Các chỉ số dinh dưỡng NIN là giá trị tham khảo trung bình trên 100g của các nguyên liệu chính khớp bảng NIN, không phải kết quả đo phòng thí nghiệm cho cả khẩu phần. |
