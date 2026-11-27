@@ -4,16 +4,17 @@
 > Giữ nguyên tên file `TEAMS.md` ở thư mục gốc repo, giữ nguyên các dòng `- Tên nhóm:` … và tiêu đề cột của bảng. Chỉ thay chỗ `____`.
 > Kiểm bằng `python run.py check`: phần "Kiểm TEAMS.md" không báo gì là đúng format.
 
-- Tên nhóm: ____
-- Lớp: ____
-- Track: ____
-- Link repo: ____
+- Tên nhóm: Opus
+- Lớp: L3B
+- Track: D
+- Link repo: https://github.com/TDM414/K5-Day15-L3B-Opus
 
 | STT | Họ và tên | Mã học viên | Vai trò | Phần việc chính |
 |---|---|---|---|---|
-| 1 | ____ | ____ | Đội trưởng | ____ |
-| 2 | ____ | ____ | Thành viên | ____ |
-| 3 | ____ | ____ | Thành viên | ____ |
+| 1 | Trần Duy Mạnh | 2A202603998 | Đội trưởng | Chuẩn bị menu mẫu, xây luồng đọc yêu cầu và đề xuất món, đo token và chi phí; nộp checkpoint |
+| 2 | Trần Thị Hồng Gấm | 2A202603967 | Thành viên | Làm rõ yêu cầu, thiết kế luồng giao diện và cùng xây tính năng chọn hộ, đổi món; tổng hợp phỏng vấn và tài liệu sản phẩm |
+| 3 | Nguyễn Xuân Dương | 2A202603955 | Thành viên | Xây giao diện nhập yêu cầu và hiển thị giỏ, kết nối API; phối hợp hoàn thiện chọn hộ, đổi món, kiểm thử toàn luồng và quay video demo |
+| 4 | Đinh Lê Thịnh | 2A202603953 | Thành viên | Xây API, tính tiền và chia phí giao hàng, kiểm ràng buộc bằng code, ghi log và chạy bộ câu thử |
 
 **Quy tắc điền**
 - **Lớp:** `L3A` hoặc `L3B`. **Track:** một chữ `A` (EdTech), `B` (Y tế), `C` (Du lịch), `D` (Thương mại điện tử), `E` (Tài chính) hoặc `F` (Làn khác). **Link repo:** link GitHub công khai của nhóm.
