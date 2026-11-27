@@ -2,58 +2,190 @@
 
 import argparse
 import json
+import threading
+import uuid
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from tools import (
-    _dish_satisfies_member,
-    get_restaurant_menu,
-    suggest_restaurants,
-    validate_cart,
-)
+from ai import ModelError
+from tools import suggest_restaurants, validate_cart
+from workflow import _norm, build_cart, extract_request, recommend_swap
+from storage import finalize as save_finalized_cart, list_members, list_orders
 
 
 WEB_ROOT = Path(__file__).with_name("web")
+DRAFTS = {}
+DRAFTS_LOCK = threading.RLock()
 
 
-def cart_options(restaurant_id, members):
-    menu = get_restaurant_menu(restaurant_id)
-    if not menu["found"]:
-        return {"error": menu["error"]}
-    shipping = menu["shipping_fee_vnd"]
-    share = (shipping + len(members) - 1) // len(members)
+def draft_view(draft):
     return {
-        "options": [
-            [
-                {"id": dish["dish_id"], "name": dish["ten_mon"], "price": dish["price_vnd"]}
-                for dish in menu["available_menu"]
-                if _dish_satisfies_member(dish, member, share) is None
-            ]
-            for member in members
-        ],
+        "draft_id": draft["id"],
+        "revision": draft["revision"],
+        "cart": draft["cart"],
+        "options": draft["options"],
+        "selections": draft["selections"],
+        "notices": draft["notices"],
+        "changed_members": sorted(draft["changed"]),
+        "finalized": draft["finalized"],
     }
 
 
+def create_draft(restaurant_id, members):
+    recent = {}
+    for order in list_orders():
+        for item in order["items"]:
+            recent.setdefault(_norm(item["member_name"]), item["dish_id"])
+    result = build_cart(restaurant_id, members, recent)
+    if not result["ok"]:
+        return {"error": " ".join(result["errors"])}
+    draft_id = uuid.uuid4().hex
+    draft = {
+        "id": draft_id,
+        "lock": threading.Lock(),
+        "restaurant_id": result["cart"]["restaurant_id"],
+        "members": members,
+        "cart": result["cart"],
+        "options": [
+            [{"id": dish["dish_id"], "name": dish["ten_mon"], "price": dish["price_vnd"]} for dish in group]
+            for group in result["replacement_options"]
+        ],
+        "selections": [
+            {key: item[key] for key in ("member_name", "dish_id", "is_blind_bag")}
+            for item in result["cart"]["items"]
+        ],
+        "notices": result["notices"],
+        "changed": set(),
+        "revision": 1,
+        "finalized": False,
+    }
+    with DRAFTS_LOCK:
+        DRAFTS[draft_id] = draft
+    return draft_view(draft)
+
+
+def edit_draft(action, payload, draft):
+    if action == "finalize" and draft["finalized"]:
+        return {**draft_view(draft), "order": draft["cart"]}
+    if payload.get("revision") != draft["revision"] or draft["finalized"]:
+        return {
+            "error": "Giỏ đã thay đổi. Kiểm tra lại phiên bản mới nhất.",
+            "code": "draft_conflict",
+            "draft": draft_view(draft),
+        }
+    if action == "finalize":
+        checked = validate_cart(draft["restaurant_id"], draft["selections"], draft["members"])
+        if not checked["ok"]:
+            return {
+                "error": " ".join(checked["errors"]) + " Hãy dựng lại giỏ để kiểm tra theo menu hiện tại.",
+                "code": "draft_invalid",
+            }
+        draft["cart"] = save_finalized_cart(
+            draft["id"], checked, draft["members"], payload.get("save_profiles") is True
+        )
+        draft["finalized"] = True
+        draft["revision"] += 1
+        return {**draft_view(draft), "order": draft["cart"]}
+
+    selections = draft["selections"]
+    if action == "check":
+        submitted = payload.get("selections")
+        if not isinstance(submitted, list) or len(submitted) != len(selections):
+            return {"error": "Số suất không khớp giỏ nháp."}
+        new_dishes = {s.get("member_name"): s.get("dish_id") for s in submitted
+                      if isinstance(s, dict) and isinstance(s.get("member_name"), str)}
+        if new_dishes.keys() != {s["member_name"] for s in selections}:
+            return {"error": "Không thể đổi tên hoặc thêm/bớt thành viên sau khi dựng giỏ."}
+        changes = [i for i, s in enumerate(selections) if new_dishes[s["member_name"]] != s["dish_id"]]
+        if len(changes) != 1:
+            return {"error": "Mỗi thao tác chỉ đổi một suất."}
+        index = changes[0]
+    else:
+        member_name = _norm(payload.get("member_name"))
+        index = next((i for i, s in enumerate(selections) if _norm(s["member_name"]) == member_name), None)
+        if index is None:
+            return {"error": "Không xác định được thành viên cần đổi món."}
+
+    member_name = selections[index]["member_name"]
+    if member_name in draft["changed"]:
+        return {"error": "Thành viên này đã dùng lượt đổi món duy nhất."}
+    alternatives = {dish["id"] for dish in draft["options"][index]} - {selections[index]["dish_id"]}
+    if not alternatives:
+        return {"error": f"Chưa có món thay thế phù hợp cho {member_name}."}
+
+    if action == "swap":
+        result = recommend_swap(
+            draft["restaurant_id"], draft["members"], selections, member_name, payload.get("feedback"),
+            allowed_dish_ids=alternatives,
+        )
+        if not result["ok"]:
+            return {"error": " ".join(result["errors"])}
+        checked = result["cart"]
+        updated = result["selections"]
+    else:
+        dish_id = new_dishes[member_name]
+        if not isinstance(dish_id, str) or dish_id not in alternatives:
+            return {"error": f"Món thay thế chưa đáp ứng yêu cầu của {member_name}."}
+        updated = list(selections)
+        updated[index] = {**selections[index], "dish_id": dish_id}
+        checked = validate_cart(draft["restaurant_id"], updated, draft["members"])
+        if not checked["ok"]:
+            return {"error": " ".join(checked["errors"])}
+    draft["cart"] = checked
+    draft["selections"] = updated
+    draft["changed"].add(member_name)
+    draft["revision"] += 1
+    return draft_view(draft)
+
+
 def preview_request(payload):
+    action = payload.get("action")
+    if action == "parse":
+        text = payload.get("text")
+        if not isinstance(text, str) or not text.strip():
+            return {"error": "Dán tin nhắn nhóm hoặc chọn Nhập thủ công."}
+        return extract_request(text, payload.get("shared_budget_vnd"))
+    if action in ("profiles", "history", "saved"):
+        saved = {}
+        if action != "history":
+            saved["members"] = list_members()
+        if action != "profiles":
+            saved["orders"] = list_orders()
+        return saved
+    if action in ("check", "swap", "finalize"):
+        draft_id = payload.get("draft_id")
+        with DRAFTS_LOCK:
+            draft = DRAFTS.get(draft_id) if isinstance(draft_id, str) else None
+        if not draft:
+            return {"error": "Giỏ nháp đã hết hiệu lực. Hãy dựng lại giỏ.", "code": "draft_missing"}
+        with draft["lock"]:
+            return edit_draft(action, payload, draft)
+    if action not in ("restaurants", "options"):
+        return {"error": "Thao tác chưa được hỗ trợ."}
+
     members = payload.get("members")
     if not isinstance(members, list) or not members or any(
         not isinstance(member, dict)
         or type(member.get("budget_vnd")) is not int
         or member["budget_vnd"] <= 0
-        or not str(member.get("name", "")).strip()
+        or not isinstance(member.get("name"), str)
+        or not member["name"].strip()
+        or (member.get("dish_required") and not (
+            str(member.get("requested_dish") or member.get("preferred_dish") or "").strip()
+        ))
+        or any(not isinstance(member.get(field, []), list)
+               or not all(isinstance(term, str) for term in member.get(field, []))
+               for field in ("allergies", "avoid_keywords", "avoid_allergens"))
         for member in members
     ):
-        return {"error": "Cần tên và ngân sách hợp lệ cho từng người."}
-
-    action = payload.get("action")
+        return {"error": "Cần tên, ngân sách và điều kiện ăn uống hợp lệ cho từng người."}
+    members = [{**member, "name": member["name"].strip()} for member in members]
+    if len({_norm(member["name"]) for member in members}) != len(members):
+        return {"error": "Tên bị trùng. Thêm họ hoặc biệt danh để phân biệt từng người."}
     if action == "restaurants":
-        return {"restaurants": suggest_restaurants(members)}
-    if action == "options":
-        return cart_options(payload.get("restaurant"), members)
-    if action == "check":
-        return validate_cart(payload.get("restaurant"), payload.get("selections"), members)
-    return {"error": "Thao tác chưa được hỗ trợ."}
+        return {"restaurants": suggest_restaurants(members, require_exact_dishes=True)}
+    return create_draft(payload.get("restaurant"), members)
 
 
 class PreviewHandler(SimpleHTTPRequestHandler):
@@ -72,14 +204,24 @@ class PreviewHandler(SimpleHTTPRequestHandler):
         try:
             length = int(self.headers.get("Content-Length", "0"))
             if not 0 < length <= 128_000:
-                self.send_error(400)
-                return
+                raise ValueError
             payload = json.loads(self.rfile.read(length))
-            result = preview_request(payload) if isinstance(payload, dict) else {"error": "Yêu cầu không hợp lệ."}
         except (ValueError, UnicodeError):
-            result = {"error": "Yêu cầu không hợp lệ."}
+            payload = None
+        try:
+            result = preview_request(payload) if isinstance(payload, dict) else {"error": "Yêu cầu không hợp lệ."}
+            status = {"draft_conflict": 409, "draft_invalid": 409, "draft_missing": 410}.get(
+                result.get("code"), 400 if "error" in result else 200
+            )
+        except ModelError as exc:
+            status = 502
+            result = {"error": str(exc), "code": "retry"}
+        except Exception as exc:
+            self.log_error("Preview request failed (%s)", type(exc).__name__)
+            status = 500
+            result = {"error": "Máy chủ chưa xử lý được yêu cầu. Hãy thử lại.", "code": "retry"}
         response = json.dumps(result, ensure_ascii=False).encode("utf-8")
-        self.send_response(400 if "error" in result else 200)
+        self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(response)))
         self.send_header("Cache-Control", "no-store")

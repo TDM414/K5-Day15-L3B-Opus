@@ -44,49 +44,45 @@ Data BTC cấp đã dùng (nếu có — không commit nguyên file): Không dù
 - **Hỏi ChatGPT/LLM chay (không có công cụ & code kiểm):** đáng học ở khả năng hiểu yêu cầu tiếng Việt lộn xộn; đáng né là hay bịa món không có trong menu, tính sai phép cộng phí ship chia đều hoặc lọt nguyên liệu dị ứng; **mình khác gì:** gắn chặt vào dữ liệu quán thật/mẫu (`data/restaurants_sample.json`) và dùng code Python kiểm chứng 100% trước khi xuất giỏ.
 
 ## §4. Thiết kế *(guide 2.2, 3.2)*
-- **Lát cắt MỘT CÂU** (1 người dùng · 1 việc · 1 quyết định AI · 1 kết quả): Một nhân viên đặt cơm trưa cho nhóm nhập/dán yêu cầu để AI trích xuất và người đặt xác nhận, hệ thống gợi ý ≤ 3 quán chọn 1, AI dựng giỏ mỗi người 1 món (né món vừa ăn, gán túi mù cho người *"gì cũng được"*) qua code kiểm đủ suất, kiêng/dị ứng và ngân sách gồm ship chia đều, rồi người đặt duyệt gửi nhóm, xử lý quay xe tối đa 1 lượt/người để code kiểm lại trước khi xuất danh sách chốt cuối và lưu lịch sử.
-- Không làm (≥3 điều):
-  1. Không tự động bấm đặt đơn, thanh toán hay trừ tiền thật trên GrabFood/ShopeeFood.
-  2. Không cào dữ liệu giá/tồn kho real-time từ app thương mại hay bịa mã giảm giá.
-  3. Không ghép món từ nhiều quán khác nhau vào cùng một đơn (khóa đúng 1 quán đã chọn ở bước 3).
-  4. Không cho phép cùng một người quay xe đổi món quá 1 lượt trong một đơn.
-- **Sơ đồ** (chi tiết xem `docs/PIPELINE.md`):
+
+- **Lát cắt một câu**: Người đặt cơm trưa dán yêu cầu của nhóm để AI trích xuất và gợi ý món từ một quán mẫu, rồi xác nhận các suất đã được kiểm tra và lấy danh sách để tự đặt trên ứng dụng giao đồ ăn.
+- **Ngoài phạm vi**: đặt đơn và thanh toán thật, tự gửi tin nhắn cho nhóm, tra giá hoặc tồn kho trực tiếp trên ứng dụng giao đồ ăn, và ghép nhiều quán vào một đơn.
+
 ```mermaid
 flowchart TD
-    S1["1. Nhập: tên từng người, budget chung/riêng gồm ship, dán yêu cầu"] --> S2["2. Xác nhận yêu cầu: AI trích kiêng/không thích/muốn ăn/budget · Người sửa & hỏi bù"]
-    S2 --> S3["3. Chọn quán: Hệ thống gợi ý tối đa 3 quán mẫu · Người chọn 1 quán"]
-    S3 --> S4["4. Dựng giỏ: AI chọn 1 món/người, tránh món vừa ăn · 'Gì cũng được' -> Túi mù"]
-    S4 --> S5{"5. Kiểm (Code): Menu/còn hàng · Đủ suất · Điều kiêng · Tiền+ship <= budget?"}
-    S5 -- "Lỗi ràng buộc (còn lượt sửa)" --> S4
-    S5 -- "Vô nghiệm" --> G10["Báo rõ lý do chưa có giỏ hợp lệ (G10)"]
-    S5 -- "Đạt 100%" --> S6["6. Duyệt & gửi: Người đặt xem, đổi món, copy tin nhắn gửi nhóm"]
-    S6 --> S7["7. Quay xe: Dán phản hồi · AI đổi thẳng 1 món khác (tối đa 1 lượt/người)"]
-    S7 --> S8{"8. Chốt (Code): Kiểm lại cả giỏ -> Xuất danh sách cuối & lưu lịch sử"}
-    S8 -- "Lỗi ràng buộc" --> S7
-    S8 -- "Hợp lệ" --> DONE["Danh sách chốt cuối (chờ người đặt bấm đặt trên app)"]
+    S1["1. Nhập yêu cầu nhóm và ngân sách gồm ship"] --> S2["2. AI trích xuất, người đặt kiểm tra và xác nhận"]
+    S2 --> S3["3. Lọc tối đa 3 quán mẫu, người đặt chọn 1 quán"]
+    S3 --> S4["4. Lọc món hợp lệ, AI đề xuất 1 suất mỗi người"]
+    S4 --> S5{"5. Python kiểm tra giỏ"}
+    S5 -- "Chưa hợp lệ" --> FAIL["Giải thích lỗi và bước tiếp theo (G10)"]
+    S5 -- "Hợp lệ" --> S6["6. Người đặt duyệt và có thể sao chép bản nháp"]
+    S6 -- "Có phản hồi" --> S7["7. Đổi một suất trong cùng quán, tối đa 1 lần mỗi người"]
+    S6 -- "Chốt luôn" --> S8{"8. Python kiểm lại toàn giỏ"}
+    S7 --> S8
+    S8 -- "Chưa hợp lệ" --> FAIL
+    S8 -- "Hợp lệ" --> DONE["Lưu lịch sử vào SQLite và xuất danh sách chốt"]
 ```
-- **Hình dạng:** `[x] workflow cố định` · `[ ] một agent` · `[ ] nhiều agent` — Chọn workflow cố định 8 bước (kèm vòng kiểm/sửa giới hạn `MAX_STEPS = 5` ở bước 4–5) vì bài toán có thứ tự xác nhận rõ ràng (nhập → xác nhận yêu cầu → chọn quán → dựng giỏ → kiểm → duyệt và gửi → quay xe → chốt), giúp kiểm soát chặt trạng thái và tránh AI nhảy bước; **không** dùng nhiều agent vì không cần đàm phán đa vai phức tạp, tốn gấp nhiều lần token và khó debug trong hackathon. *Quy tắc chạy đơn lượt cho bộ eval (`run.py eval`):* trong giao diện tương tác hệ thống đi đủ 8 bước có trạng thái; khi chạy đơn lượt qua `answer(text)` mà đầu vào đã cung cấp đủ dữ kiện (quán, ngân sách, ràng buộc hoặc trạng thái bước 7 quay xe), hệ thống tự động nhảy thẳng (fast-forward) tới bước tương ứng mà không hỏi lại thừa.
-- **AI dựa vào đâu** — mỗi công cụ (khớp `codebase/tools.py`):
 
-  | Công cụ | Input | Output | Tác động ra ngoài? |
-  |---|---|---|---|
-  | `suggest_restaurants` | Danh sách ràng buộc ăn uống, ngân sách từng người (`members`), số người | Tối đa 3 quán phù hợp kèm phí ship và lý do khớp | Không |
-  | `get_restaurant_menu` | `restaurant_id`, lịch sử món vừa ăn (tùy chọn; đọc thêm từ `data/order_history.json` khi có) | Danh sách món còn hàng (`in_stock: true`) kèm giá, `allergens`, cờ né món vừa ăn | Không |
-  | `validate_cart` | `restaurant_id`, danh sách chọn món từng người, `members` (ngân sách + điều kiêng) | Kết quả `ok` (bool), chi tiết tiền món + ship chia đều, danh sách lỗi từng người | Không |
-  | `save_order_history` | Mã đơn, `restaurant_id`, danh sách món đã chốt cuối cùng | Bản ghi lịch sử lưu cục bộ vào `data/order_history.json` (bản nháp chờ người đặt tự đặt app) | Ghi file lịch sử cục bộ (không gửi tin/không thanh toán) |
+- **Hình dạng**: Luồng cố định 8 bước. Việc xác nhận yêu cầu, chọn quán, duyệt giỏ và chốt có thứ tự rõ ràng. Một quy trình cố định giúp lưu trạng thái đã duyệt và xác định chính xác suất được phép đổi. Model được gọi để trích xuất yêu cầu và đề xuất món trong danh sách ứng viên đã lọc. Khi lựa chọn ban đầu của model nằm ngoài danh sách, code lấy một món trong danh sách hợp lệ rồi kiểm tra toàn giỏ.
+- **Hai điểm chạy**: `python run.py` mở giao diện có các bước xác nhận, chọn quán, đổi và chốt giỏ. `python run.py eval` gọi `answer(text)` để đo một yêu cầu độc lập dưới dạng văn bản. Nhánh eval dùng cùng phần trích xuất, chọn món và kiểm tra giỏ, rồi trả kết quả dưới dạng bản nháp hoặc lý do cần dừng.
 
-- **Mức tự động:** `[x] AI gợi ý, người quyết` · `[ ] AI tự làm khi chắc, chuyển người khi không` · `[ ] AI tự làm` — Lý do: chọn nhầm nguyên liệu dị ứng/chay hoặc vượt tiền gồm ship gây hậu quả trực tiếp tới sức khỏe và chi phí của nhóm; người đặt giữ quyền duyệt ở bước 2, 3, 6 và tự bấm đặt đơn ngoài app, chi phí kiểm duyệt lại chỉ mất vài giây.
-- **Chỗ chặn rủi ro:** Bước 5 và Bước 8 dùng **code Python tất định** (`validate_cart`) kiểm tra đủ 4 điều kiện: tồn tại món & còn hàng (`in_stock`), đủ suất theo số người, không vi phạm `allergens`/chế độ ăn chay, và phép tính `giá món + ship / số người ≤ budget`; mọi giỏ vi phạm đều bị chặn trước khi hiển thị chốt.
-- **Chỗ người duyệt:** Người đặt bắt buộc xác nhận trích xuất ở bước 2, chọn 1 trong ≤ 3 quán ở bước 3, duyệt/copy tin nhắn gửi nhóm ở bước 6, và tự thực hiện đặt/thanh toán trên app ngoài sau bước 8.
-- **Nguyên tắc thiết kế** (≥3, bắt buộc G10):
+| Công cụ hoặc bước | Input | Output | Tác động |
+|---|---|---|---|
+| `suggest_restaurants()` | Yêu cầu ăn uống và ngân sách của từng người | Tối đa 3 quán mẫu có món phù hợp cho cả nhóm, kèm phí ship | Chỉ đọc menu |
+| `get_restaurant_menu()` | Mã quán, mã hoặc tên món vừa ăn nếu có | Món còn hàng, món hết hàng, giá và dữ liệu thành phần | Chỉ đọc menu |
+| `validate_cart()` | Mã quán, các suất đã chọn và ràng buộc của từng người | Kết quả kiểm tra, phí ship, chi tiết tiền hoặc lỗi từng suất | Chỉ đọc menu |
+| `storage.finalize()` | Mã giỏ, giỏ đã kiểm tra và lựa chọn lưu hồ sơ | Danh sách chốt và bản ghi lịch sử trong `data/lunchie.sqlite3` | Ghi SQLite cục bộ |
 
-  | Nguyên tắc | Chỗ cụ thể trên sơ đồ / trong bản chạy thử |
-  |---|---|
-  | **G10 — thu hẹp phạm vi khi không chắc** | Bước 2: thiếu budget/ràng buộc thì hỏi bù trước khi gợi ý quán; Bước 5: không tìm được giỏ hợp lệ thì dừng báo rõ lý do vô nghiệm thay vì tự nới budget hay bịa món. |
-  | **Tách AI gợi ý và Code kiểm cứng** | Bước 4 & 7 AI đề xuất món/túi mù; Bước 5 & 8 `validate_cart()` kiểm tra 100% dữ liệu thật và phép toán tiền/dị ứng. |
-  | **Giới hạn phạm vi & số lượt sửa** | Khóa 1 quán/đơn ở bước 3; giới hạn vòng sửa tự động `MAX_STEPS = 5` ở bước 4–5; giới hạn tối đa **1 lượt quay xe/người** ở bước 7. |
+- **Mức tự động và chỗ người duyệt**: AI gợi ý, người đặt quyết. Người đặt xác nhận yêu cầu sau khi trích xuất ở bước 2, chọn quán ở bước 3 và duyệt giỏ ở bước 6. Sau bước 8, người đặt tự đặt và thanh toán trên ứng dụng giao đồ ăn.
+- **Chỗ chặn rủi ro**: Python lọc ứng viên trước khi gọi model, sau đó kiểm lại món thuộc đúng quán, còn hàng, đủ một suất mỗi người và đáp ứng điều kiện kiêng, dị ứng, ăn chay và ngân sách. Với mỗi người, tổng gồm giá món cộng phí ship chia đều, làm tròn lên đến đồng. Sau mỗi lần đổi và trước khi chốt, Python kiểm lại toàn bộ giỏ. Thành phần chưa đủ căn cứ để xét dị ứng cần được xác nhận với quán.
 
-- Phần nào còn giả (ghi rõ, không giả làm thật): Ở **CP2**, lời gọi model AI đang chạy **chế độ giả** (`MODEL_PROVIDER=fake` trong `codebase/ai.py`), dữ liệu quán/menu/giá VNĐ trong `data/restaurants_sample.json` là **bộ quán mẫu tĩnh cục bộ** (tên món tham chiếu từ `vietnamese_dishes.csv`, chưa nối API GrabFood/ShopeeFood), và `save_order_history` chỉ lưu JSON cục bộ vào `data/order_history.json` (không gửi tin nhắn nhóm tự động hay đặt/thanh toán thật). Lời gọi model thật (`deepseek-4.1-flash`) sẽ nối từ CP3.
+| Nguyên tắc thiết kế | Áp dụng |
+|---|---|
+| **G10 · Thu hẹp phạm vi khi thiếu căn cứ** | Bước 2 hỏi bổ sung thông tin còn thiếu. Bước 5 báo rõ món hết hàng, thiếu thông tin thành phần hoặc vượt ngân sách khi các dữ kiện này cản trở việc lập giỏ. |
+| **Gợi ý dựa trên dữ liệu và điều kiện đã kiểm tra** | Bước 4 ưu tiên món phù hợp yêu cầu và tránh món vừa ăn nếu có lựa chọn khác. Người giao quyền chọn nhận nhãn Túi mù. Bước 5 và bước 8 kiểm lại giỏ theo menu. |
+| **Giữ quyền kiểm soát của người đặt** | Người đặt chọn đúng một quán. Mỗi thao tác đổi ở bước 7 tác động một suất và mỗi người có tối đa một lượt đổi. Hồ sơ chỉ được lưu khi người đặt chọn lưu lúc chốt. |
+
+- **Phần thật và phần mẫu ở CP3**: Model `deepseek/deepseek-v4.1-flash` được gọi qua OpenRouter để trích xuất và gợi ý. Menu tĩnh v4 trong `data/restaurants_sample.json` có 6 quán và 52 món với giá, tồn kho và phí ship mẫu. Công thức và thành phần có nguồn tham chiếu trong `data/processed/vietnamese_dishes.csv`. Lịch sử giỏ chốt được lưu thật vào SQLite trên máy chạy demo.
 
 ## §5. Chỗ khó — 4 lớp + ≥6 kịch bản + 2 tấn công *(guide 2.3)*
 

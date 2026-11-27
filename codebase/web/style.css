@@ -110,6 +110,7 @@ textarea.control { min-height: 132px; resize: vertical; }
 .money { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .notice { padding: 10px 12px; margin-bottom: 14px; border-radius: var(--radius-control); background: var(--color-warning-bg); color: var(--color-warning-text); font-size: .875rem; overflow-wrap: anywhere; }
 .notice.error { background: var(--color-danger-bg); color: var(--color-danger-text); }
+.notice .button { margin-top: 8px; }
 .notice.success { background: var(--color-success-bg); color: var(--color-success-text); }
 .notice ul { margin: 6px 0 0; padding-inline-start: 20px; }
 .source-draft { margin-bottom: 12px; }

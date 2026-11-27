@@ -60,6 +60,20 @@ def _load_restaurants_data() -> List[Dict[str, Any]]:
     return data.get("restaurants", [])
 
 
+def _menu_match(dishes, requested):
+    key = _strip_accents(str(requested or "").lower()).strip()
+    with_id = re.fullmatch(r"(?P<name>.+?)\s*\((?P<id>[a-z0-9-]+)\)", key)
+    for dish in dishes:
+        name = _strip_accents(dish["ten_mon"].lower())
+        dish_id = dish["dish_id"].lower()
+        if with_id:
+            if dish_id == with_id["id"] and name == with_id["name"].strip():
+                return dish
+        elif key in (name, dish_id):
+            return dish
+    return None
+
+
 def _dish_satisfies_member(
     dish: Dict[str, Any],
     member: Dict[str, Any],
@@ -77,6 +91,8 @@ def _dish_satisfies_member(
 
     if member.get("vegetarian") and not dish.get("is_vegetarian", False):
         return f"Món '{dish_name}' không phải món chay"
+    if member.get("require_non_vegetarian") and dish.get("is_vegetarian", False):
+        return f"Món '{dish_name}' không đáp ứng yêu cầu món mặn"
 
     restriction_tags = {
         _to_slug(tag)
@@ -160,9 +176,10 @@ def _dish_satisfies_member(
 
 
 @tool
-def suggest_restaurants(members: Optional[List[Dict[str, Any]]] = None, max_results: int = 3) -> List[Dict[str, Any]]:
+def suggest_restaurants(members: Optional[List[Dict[str, Any]]] = None, max_results: int = 3, *,
+                        require_exact_dishes: bool = False) -> List[Dict[str, Any]]:
     """Tên: suggest_restaurants — Lọc và gợi ý tối đa 3 quán phù hợp từ danh sách quán mẫu (Bước 3).
-    Input: members (ngân sách, điều kiêng, dị ứng và tên món ưa thích tùy chọn), max_results (int, tối đa 3).
+    Input: members (ràng buộc từng người), max_results (int, tối đa 3), require_exact_dishes (lọc theo món bắt buộc).
     Output: danh sách tối đa 3 quán phù hợp kèm shipping_fee_vnd, ship_per_person_vnd và số món hợp lệ cho từng người.
     Tác động ra ngoài: Không."""
     restaurants = _load_restaurants_data()
@@ -201,6 +218,9 @@ def suggest_restaurants(members: Optional[List[Dict[str, Any]]] = None, max_resu
                 continue
             m_name = str(m.get("name") or f"Nguoi_{idx + 1}").strip() or f"Nguoi_{idx + 1}"
             ok_dishes = [dish for dish in menu if _dish_satisfies_member(dish, m, ship_share) is None]
+            if require_exact_dishes and m.get("dish_required"):
+                exact = _menu_match(ok_dishes, m.get("requested_dish") or m.get("preferred_dish"))
+                ok_dishes = [exact] if exact else []
             per_member_options[m_name] = len(ok_dishes)
             if not ok_dishes:
                 all_ok = False
@@ -408,41 +428,22 @@ def validate_cart(
 
 @tool
 def save_order_history(order_id: str, restaurant_id: str, validated_cart: Dict[str, Any]) -> Dict[str, Any]:
-    """Tên: save_order_history — Lưu lịch sử đơn đã kiểm hợp lệ vào file cục bộ (Bước 8).
+    """Tên: save_order_history — Lưu lịch sử đơn đã kiểm hợp lệ vào SQLite cục bộ (Bước 8).
     Input: order_id (str), restaurant_id (str), validated_cart (dict kết quả đạt từ validate_cart).
     Output: dict trạng thái {'saved': bool, 'path': str, 'message': str}.
-    Tác động ra ngoài: Chỉ ghi lịch sử cục bộ vào data/order_history.json; KHÔNG đặt đơn, KHÔNG gửi tin hay thanh toán thật."""
+    Tác động ra ngoài: Chỉ ghi SQLite cục bộ; KHÔNG đặt đơn, KHÔNG gửi tin hay thanh toán thật."""
+    from storage import finalize
+
     if not isinstance(validated_cart, dict) or not validated_cart.get("ok"):
         return {
             "saved": False,
-            "path": HISTORY_PATH,
+            "path": "data/lunchie.sqlite3",
             "message": "Không thể lưu lịch sử vì giỏ chưa vượt qua bước kiểm tra validate_cart.",
         }
-
-    records: List[Any] = []
-    if os.path.exists(HISTORY_PATH):
-        try:
-            with open(HISTORY_PATH, encoding="utf-8") as f:
-                loaded = json.load(f)
-            if isinstance(loaded, list):
-                records = loaded
-        except (json.JSONDecodeError, OSError):
-            records = []
-
-    record = {
-        "order_id": str(order_id or "").strip(),
-        "restaurant_id": str(restaurant_id or "").strip(),
-        "restaurant_name": validated_cart.get("restaurant_name", ""),
-        "items": validated_cart.get("items", []),
-        "total_order_vnd": validated_cart.get("total_order_vnd", 0),
-    }
-    records.append(record)
-    os.makedirs(os.path.dirname(HISTORY_PATH), exist_ok=True)
-    with open(HISTORY_PATH, "w", encoding="utf-8") as f:
-        json.dump(records, f, ensure_ascii=False, indent=2)
+    record = finalize(str(order_id or "").strip(), validated_cart, [], save_profiles=False)
 
     return {
         "saved": True,
-        "path": HISTORY_PATH,
+        "path": "data/lunchie.sqlite3",
         "message": f"Đã lưu lịch sử đơn {record['order_id']} (bản nháp cuối, chờ người đặt tự bấm đặt trên app).",
     }

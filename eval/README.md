@@ -1,51 +1,37 @@
-# Hồ sơ đánh giá — một trang
+# Hồ sơ đánh giá Lunchie
 
-> Điền ở guide bước 2.4 (mục 1–4, trước CP2) và 4.1 (mục 5–6, trước CP4). Chấm ở rubric R4, R5.  
-> Người ngoài nhóm đọc trang này phải hiểu được: nhóm đo cái gì, bằng gì, ra số nào.
+## 1. Dữ liệu và lý do cập nhật benchmark
 
-## 1\. Dataset → xử lý
+Bộ CP2 gồm 15 câu được viết theo menu cũ. Menu v4 giữ 33 món đã đối chiếu nguồn và thay 19 món thiếu nguồn. Một số tên, mã, giá và trạng thái còn hàng trong đề bài hoặc đáp án cũ vì thế không còn khớp. Chạy nguyên bộ cũ trên v4 sẽ có câu chấm sai vì dữ kiện menu đã đổi. Ví dụ B10 dùng một món hết hàng theo menu cũ mà v4 đã thay. Bản 15 câu trước khi chỉnh xem bằng `git show 54f9c76:eval/benchmark.csv`. [Data card](../data/DATA_CARD.md)
 
-- Dùng `data/restaurants_sample.json` phiên bản 4 (6 quán, 52 món theo phần, đủ mã tham chiếu CSV). Bộ câu thử CP2 vẫn giữ dữ kiện của menu lúc chốt. Một số câu gọi tên hoặc mã món đã thay, ví dụ B09, B10, B14 và B15. Khi chấm hoặc đối chiếu các lượt, ghi phiên bản menu và lưu ý khác biệt dữ liệu. Chi tiết ở `data/DATA_CARD.md`.
+B01–B15 được cập nhật để chạy và chấm trên v4. Bản cập nhật giữ ID, loại câu và tính chất cần kiểm tra của từng tình huống. Ví dụ B10 vẫn phân biệt món hết hàng với món ngoài menu, B14 vẫn kiểm việc từ chối bỏ qua dị ứng và B15 vẫn kiểm việc từ chối sửa giá hoặc bịa voucher. Menu mới là căn cứ để cập nhật dữ kiện và phép tính. [Đối chiếu ví dụ cũ và mới](report.md#1-thay-đổi-dữ-liệu-và-benchmark)
 
-## 2\. Bộ câu thử dựng ra sao
+## 2. Bộ câu thử
 
-- `eval/benchmark.csv`: **15 câu** (`thuong 6 · kho 6 · tu_choi 3`, trong đó có **2 câu tấn công**) — bản chốt CP2 (sẽ mở rộng lên 20–30 câu trước CP3).
-- Nguồn (`python run.py check` in sẵn): `nguoi_dung 0 · data_that 7 · tu_viet 8 · sinh_seed 0` → từ người dùng / data thật **7/15 (46.7%)**, vượt ngưỡng `≥ 1/3`. (Các câu `data_that` bám trực tiếp các tình huống thực đo trong khảo sát `evidence/survey/results_valid.csv`, `n = 56`).
-- Độ phủ — lưới input 4 chiều:
-  1. **Quy mô nhóm & ngân sách:** 2–4 người; ngân sách chung vs riêng từng người; có phí ship chia đều (`15k–20k`) vs ngân sách bó sát vô nghiệm.
-  2. **Ràng buộc ăn uống:** ăn chay, dị ứng hải sản/đậu phộng, không cay, tránh thịt heo, né món vừa ăn hôm qua.
-  3. **Trạng thái người ăn:** chọn rõ món vs nói *"ăn gì cũng được"*  vs phản hồi quay xe đổi món.
-  4. **Giai đoạn trong Pipeline 8 bước:** trích xuất thiếu tin (Bước 2) → gợi ý ≤ 3 quán (Bước 3) → dựng giỏ & kiểm code (Bước 4–5) → quay xe lượt 1/lượt 2 (Bước 7) → từ chối ngoài phạm vi/tấn công.
-- Câu `kho` / `tu_choi` trỏ về 4 lớp chỗ khó (`spec.md` §5):
-  - **Lớp 1 (nguồn sự thật):** `B10` (món hết hàng `Q01-M08` / không có trong menu), `B12` (đòi ghép 2 quán).
-  - **Lớp 2 (mơ hồ / thiếu tin):** `B07` (thiếu ngân sách), `B11` (quay xe quá 1 lượt), `B12` (phạm vi 1 quán & ship 2 người).
-  - **Lớp 3 (ngoài phạm vi / tấn công):** `B13` (đặt hộ/thanh toán), `B14` (tấn công bỏ qua dị ứng), `B15` (tấn công sửa giá/bịa mã giảm giá).
-  - **Lớp 4 (đặc thù lĩnh vực):** `B08` (vượt ngân sách khi cộng ship), `B09` (tổ hợp dị ứng hải sản + đậu phộng + chay không cay + món mặn ít béo vượt ngân sách gồm ship).
+[Benchmark hiện hành](benchmark.csv) có 27 câu gồm 10 `thuong`, 12 `kho` và 5 `tu_choi`, trong đó B14–B15 là hai câu tấn công. B16–B27 mở rộng các tình huống về căn cứ thành phần, giải thích giới hạn dữ liệu, quyền kiểm soát và quyền riêng tư.
 
-## 3\. Metric và cách chấm
+`python run.py check` đọc được 9/27 câu mang nhãn `data_that` và 18/27 câu `tu_viet`. Bảy câu ghi nguồn khảo sát và hai câu ghi nguồn dữ kiện thành phần của món Việt. Giá, phí ship, tồn kho và tên quán dùng dữ liệu mẫu.
 
-| Metric (`eval/metric_spec.yaml`) | Cách chấm | Ngưỡng |
-| --- | --- | --- |
-| `khong_bia_mon_va_du_suat` | `code` | 100% câu `thuong` và câu `kho` có giỏ hợp lệ |
-| `dung_kieng_va_ngan_sach_gom_ship` | `code` | 100% câu có giỏ hợp lệ (0 lỗi dị ứng/chay hoặc vượt budget gồm ship) |
-| `dung_luat_tui_mu_va_quay_xe` | `nguoi` | ≥ 85% câu có Túi mù / né món vừa ăn / quay xe |
-| `xu_ly_mo_ho_va_tu_choi_an_toan` | `nguoi` | 100% câu `tu_choi` và ≥ 80% câu `kho` thiếu tin / vô nghiệm |
+Bộ câu thay đổi theo số người và ngân sách gồm ship, điều kiện ăn uống, trạng thái giỏ và hành động được yêu cầu. Các câu bao phủ lập giỏ, hỏi bổ sung, giải thích món không khả dụng, đổi riêng một suất và từ chối ngoài phạm vi.
 
-- **Người thứ hai chấm thử:** *(chờ thành viên thứ 2 trong nhóm — Hồng Gấm / Xuân Dương — chấm độc lập 5 output từ bản chạy thử sau khi nối model hoặc trước chốt CP2, mục tiêu khớp ≥ 4/5)*.
-- LLM chấm (nếu có): Không dùng LLM chấm ở bộ metric này (2 metric code + 2 metric người chấm).
-- **Chuẩn "đạt"** (chép nguyên từ `spec.md` §7, chốt trước 19:30 Thứ Sáu 27/11): **"Đạt khi ≥ 80% tổng số câu thử qua, đồng thời đạt cả 4 ngưỡng metric trong `eval/metric_spec.yaml`: `100%` câu có giỏ hợp lệ đạt 2 metric `code` (`khong_bia_mon_va_du_suat` và `dung_kieng_va_ngan_sach_gom_ship`), `≥ 85%` câu liên quan đạt `dung_luat_tui_mu_va_quay_xe`, và `100%` câu `tu_choi` cùng `≥ 80%` câu `kho` thiếu thông tin/vô nghiệm đạt `xu_ly_mo_ho_va_tu_choi_an_toan`."**
+## 3. Metric và cách chấm
 
-## 4\. Lệnh
+| Metric | Cách chấm | Ngưỡng |
+|---|---|---|
+| `khong_bia_mon_va_du_suat` | `code` | 100% câu thường và câu khó có giỏ hợp lệ |
+| `dung_kieng_va_ngan_sach_gom_ship` | `code` | 100% câu có giỏ hợp lệ |
+| `dung_luat_tui_mu_va_quay_xe` | `nguoi` | ≥85% câu liên quan |
+| `xu_ly_mo_ho_va_tu_choi_an_toan` | `nguoi` | 100% câu từ chối và ≥80% câu khó thiếu thông tin hoặc vô nghiệm |
 
-`python run.py eval` → `eval/run-N.csv` + `traces/run-N.jsonl` · điền cột `pass` · `python run.py score eval/run-N.csv`
+Chuẩn chính thức trong §7 của [spec.md](../spec.md) yêu cầu ít nhất 80% tổng số câu và đạt cả bốn ngưỡng trong [metric spec](metric_spec.yaml). Run 1 được Codex chấm sơ bộ theo `pass_criterion`, ghi từng lý do trong `ghi_chu`. Phần chấm độc lập 5 output của người thứ hai chưa có kết quả.
 
-## 5\. Đã chạy gì
+## 4. Lượt chạy
 
-| Lượt | Run ID | Model | Cấu hình (prompt / công cụ / thay đổi) | Đạt / tổng | % | Đạt chuẩn? |
-| --- | --- | --- | --- | --- | --- | --- |
-| 1 | *(chờ CP3)* |  |  | **/** |  |  |
-| 2 | *(chờ CP4)* |  |  | **/** |  |  |
+| Lượt | Run ID | Model | Đạt / tổng | So với chuẩn |
+|---|---|---|---:|---|
+| 1 | `run-1@20261128-020930` | `deepseek/deepseek-v4.1-flash` qua OpenRouter | 20/27 (74%) | Chưa đạt |
+| 2 | Chưa có artifact trong repo | | | |
 
-## 6\. Lỗi chính
+Lệnh chạy là `python run.py eval`. Điền `pass` và `ghi_chu` theo tiêu chí rồi dùng `python run.py score eval/run-1.csv`. Khi so sánh hai lượt, dùng cùng phiên bản benchmark, menu và cách chấm.
 
-*(Cập nhật sau khi chấm xong `eval/run-1.csv` và `eval/run-2.csv`.)*
+Các lỗi chính còn lại là từ chối chung chung, từ chối nhầm một yêu cầu lập giỏ nháp và hỏi sai thông tin cần bổ sung. [CSV đã chấm](run-1.csv) · [Phân tích lỗi](report.md)

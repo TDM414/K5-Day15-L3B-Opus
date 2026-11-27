@@ -9,11 +9,11 @@
 | **1** | **Nhập** | **Người đặt** nhập tên từng người, budget chung hoặc riêng (đã gồm phí ship chia đều), gõ tự do hoặc dán tin nhắn yêu cầu của nhóm. | Bản thô yêu cầu nhóm + ngân sách |
 | **2** | **Xác nhận yêu cầu** | **AI** trích xuất có cấu trúc: `kiêng · không thích · muốn ăn · budget` theo từng người. **Người đặt** sửa lại, hỏi bù chỗ chưa rõ (thiếu ngân sách, thiếu tên/số người, yêu cầu mập mờ) rồi bấm xác nhận. | Bảng yêu cầu đã khóa ràng buộc |
 | **3** | **Chọn quán** | **Hệ thống** lọc và đề xuất **tối đa 3 quán** phù hợp từ danh sách quán mẫu (`data/restaurants_sample.json`). **Người đặt** chọn **1 quán**. | `restaurant_id` đã chọn + phí ship |
-| **4** | **Dựng giỏ** | **AI** chọn mỗi người một món trong menu quán đã chọn, tránh các món vừa ăn gần đây (nếu có lịch sử). Người ghi *"gì cũng được"* nhận **túi mù 🎁** (món hợp ngân sách + không đụng điều kiêng). | Giỏ đề xuất nháp (1 món/người) |
+| **4** | **Dựng giỏ** | **AI** chọn mỗi người một món trong menu quán đã chọn, tránh các món vừa ăn gần đây (nếu có lịch sử). Người ghi *"gì cũng được"* nhận **túi mù** (món hợp ngân sách + không đụng điều kiêng). | Giỏ đề xuất nháp (1 món/người) |
 | **5** | **Kiểm** | **Code** kiểm tra tất định 4 điều kiện: (1) món có trong menu & còn hàng (`in_stock`), (2) đủ suất theo số người, (3) không vi phạm điều kiêng/dị ứng/chay, (4) `giá món + phí ship / số người ≤ budget` từng người. Nếu sai → báo lỗi cụ thể để AI đổi món (tối đa `MAX_STEPS = 5`) hoặc báo vô nghiệm kèm lý do. | Giỏ đạt kiểm tra code (`PASS`) hoặc lý do vô nghiệm |
 | **6** | **Duyệt và gửi** | **Người đặt** xem giỏ đã kiểm, tự đổi món nếu cần, copy tin nhắn tóm tắt giỏ để gửi cho nhóm. | Tin nhắn nháp chờ nhóm phản hồi |
 | **7** | **Quay xe** | Ai trong nhóm không ưng thì phản hồi, người đặt dán phản hồi vào hệ thống. **AI** đổi thẳng một món khác phù hợp trong cùng quán — **giới hạn mỗi người tối đa 1 lượt quay xe**. | Giỏ sau quay xe |
-| **8** | **Chốt** | **Code** kiểm lại toàn bộ giỏ sau quay xe (menu, tồn hàng, đủ suất, kiêng, ngân sách gồm ship), xuất danh sách đặt cuối cùng và **lưu lịch sử** (`data/order_history.json`) để bước 4 lần sau tránh trùng món vừa ăn. | Danh sách chốt cuối + bản ghi lịch sử |
+| **8** | **Chốt** | **Code** kiểm lại toàn bộ giỏ sau quay xe (menu, tồn hàng, đủ suất, kiêng, ngân sách gồm ship), xuất danh sách đặt cuối cùng và **lưu lịch sử** vào SQLite cục bộ (`data/lunchie.sqlite3`) để phiên sau tra hồ sơ và món vừa ăn. | Danh sách chốt cuối + bản ghi lịch sử |
 
 ## 2. Sơ đồ luồng & Chốt kiểm
 
@@ -21,7 +21,7 @@
 flowchart TD
     S1["1. Nhập: tên từng người, budget chung/riêng gồm ship, dán yêu cầu"] --> S2["2. Xác nhận yêu cầu: AI trích kiêng/không thích/muốn ăn/budget · Người sửa & hỏi bù"]
     S2 --> S3["3. Chọn quán: Hệ thống gợi ý tối đa 3 quán mẫu · Người chọn 1 quán"]
-    S3 --> S4["4. Dựng giỏ: AI chọn 1 món/người, tránh món vừa ăn · 'Gì cũng được' -> Túi mù 🎁"]
+    S3 --> S4["4. Dựng giỏ: AI chọn 1 món/người, tránh món vừa ăn · 'Gì cũng được' -> Túi mù"]
     S4 --> S5{"5. Kiểm (Code): Menu/còn hàng · Đủ suất · Điều kiêng · Tiền+ship <= budget?"}
     S5 -- "Lỗi ràng buộc (còn lượt sửa)" --> S4
     S5 -- "Vô nghiệm" --> FAIL["Báo rõ lý do chưa có giỏ hợp lệ (G10)"]
@@ -34,8 +34,8 @@ flowchart TD
 
 ## 3. Phân định ranh giới AI · Code · Người dùng
 
-- **AI làm:** Hiểu tiếng Việt tự nhiên để trích cấu trúc yêu cầu (bước 2); gợi ý chọn món, gán **túi mù 🎁** cho người *"gì cũng được"*, né món vừa ăn (bước 4); chọn món thay thế khi người dùng quay xe (bước 7). **Không tự bịa món/giá, không tự bỏ qua điều kiêng.**
-- **Code kiểm (`codebase/tools.py`):** Lọc ứng viên quán (bước 3); kiểm tra cứng tồn tại món, `in_stock`, đủ suất, không đụng `allergens`/chế độ ăn, tính tiền + phí ship chia đều ≤ budget (bước 5 & bước 8); khóa hạn mức **1 lượt quay xe/người** (bước 7); lưu lịch sử vào file JSON cục bộ (bước 8).
+- **AI làm:** Hiểu tiếng Việt tự nhiên để trích cấu trúc yêu cầu (bước 2); gợi ý chọn món, gán **túi mù** cho người *"gì cũng được"*, né món vừa ăn (bước 4); chọn món thay thế khi người dùng quay xe (bước 7). **Không tự bịa món/giá, không tự bỏ qua điều kiêng.**
+- **Code kiểm (`codebase/tools.py`, `codebase/storage.py`):** Lọc ứng viên quán (bước 3); kiểm tra cứng tồn tại món, `in_stock`, đủ suất, không đụng thành phần dị ứng/chế độ ăn, tính tiền + phí ship chia đều ≤ budget (bước 5 & bước 8); lưu hồ sơ khi người dùng tự chọn và chốt giỏ/lịch sử idempotent trong SQLite cục bộ (bước 8).
 - **Người đặt quyết (Human-in-the-loop):** Nhập yêu cầu & ngân sách nhóm (bước 1), xác nhận thông tin trích xuất (bước 2), chọn 1 quán (bước 3), duyệt và copy gửi nhóm (bước 6), dán phản hồi quay xe từ nhóm (bước 7), tự bấm đặt đơn và thanh toán trên app ngoài sau bước 8.
 
 ## 4. Bất biến hệ thống (Không được phá vỡ)

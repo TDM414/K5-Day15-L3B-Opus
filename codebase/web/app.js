@@ -6,10 +6,11 @@ const steps = [
 ];
 const example = "Mai: muốn ăn cơm gà, 75k\nAn: ăn chay, không cay, 65k\nLinh: ăn gì cũng được, 70k";
 const state = {
-  step: 0, text: "", budget: "", parsed: "", members: [], restaurants: [], restaurant: null,
-  options: [], selections: [], cart: null, swap: null, changed: new Set(),
-  busy: "", errors: {}, notice: "", status: "", finalized: false, fallback: "", guide: true,
-  recentDishes: new Map(),
+  step: 0, text: "", budget: "", parsed: "", members: [], restaurants: [], restaurant: null, draftId: null, revision: null,
+  options: [], selections: [], cart: null, cartNotices: [], swap: null, changed: new Set(),
+  busy: "", errors: {}, notice: "", status: "", finalized: false, fallback: "", guide: true, saveProfiles: false,
+  profiles: [], history: [], savedNotice: "", preferredRestaurantId: null, confirmedMembers: "",
+  swapFeedback: "", replacement: "", retry: null,
 };
 const content = document.querySelector("#step-content");
 const title = document.querySelector("#step-title");
@@ -22,7 +23,9 @@ const escape = value => String(value ?? "").replace(/[&<>"']/g, char => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
 })[char]);
 const normalize = value => value.toLocaleLowerCase("vi").normalize("NFD").replace(/\p{M}/gu, "").replaceAll("đ", "d");
-const emptyMember = () => ({ name: "", budget: "", avoid: "", wants: "", vegetarian: false, blind: false });
+const emptyMember = () => ({
+  name: "", budget: "", allergies: "", avoid: "", wants: "", vegetarian: false, blind: false, dishRequired: false,
+});
 const inputMoney = value => {
   const compact = value.trim().toLowerCase().replace(/[.\s]/g, "");
   const match = compact.match(/^(\d+)(k|đ|₫|vnd)?$/);
@@ -31,72 +34,66 @@ const inputMoney = value => {
   return Number.isSafeInteger(amount) && amount > 0 ? amount : null;
 };
 
-function readLine(line, sharedBudget) {
-  const member = { ...emptyMember(), budget: sharedBudget };
-  const match = line.match(/^\s*([^:：]+)[:：]\s*(.*)$/);
-  if (!match) return { ...member, wants: line.trim() };
-  member.name = match[1].trim();
-  const wishes = [];
-  const avoids = [];
-  for (const fragment of match[2].split(/[,;]+/).map(part => part.trim()).filter(Boolean)) {
-    const budgetPhrase = fragment.replace(/^(?:ngân sách|tối đa)\s*/i, "");
-    const amount = fragment.match(/(?:^|\s)(\d[\d.]*\s*(?:k|đ|₫|vnd))$/i)?.[1];
-    const budget = inputMoney(budgetPhrase) || (amount && inputMoney(amount));
-    if (budget) member.budget = String(budget);
-    const part = budget ? fragment.slice(0, fragment.lastIndexOf(amount || budgetPhrase)).trim() : fragment;
-    if (!part || /^(ngân sách|tối đa)$/i.test(part)) continue;
-    if (/^(ăn\s+)?chay$/i.test(part)) {
-      member.vegetarian = true;
-    } else if (/^(ăn\s+)?(gì|món gì)\s+cũng\s+được$/i.test(part)) {
-      member.blind = true;
-    } else if (/^(dị ứng|kiêng|không( thích| ăn)?)\s+/i.test(part)) {
-      avoids.push(part.replace(/^(kiêng|không( thích| ăn)?)\s+/i, ""));
-    } else {
-      wishes.push(part.replace(/^muốn\s+(ăn\s+)?/i, ""));
-    }
-  }
-  member.avoid = avoids.join(", ");
-  member.wants = wishes.join(", ");
-  return member;
+function memberFromApi(member, budget = "") {
+  return {
+    ...emptyMember(),
+    name: member.name,
+    budget: member.budget_vnd ? String(member.budget_vnd) : budget,
+    allergies: (member.allergies || []).join(", "),
+    avoid: [...new Set([
+      ...(member.avoid_keywords || []), ...(member.avoid_allergens || []),
+      ...(member.require_non_vegetarian ? ["chay"] : []),
+    ])].join(", "),
+    wants: member.requested_dish || member.preferred_dish || "",
+    vegetarian: Boolean(member.vegetarian),
+    blind: Boolean(member.blind_bag),
+    dishRequired: Boolean(member.dish_required),
+  };
 }
 
 function membersForCheck() {
-  const allergyPrefix = /^dị ứng\s+/i;
-  return state.members.map(member => {
-    const terms = member.avoid.split(/[,;]+/).map(word => word.trim()).filter(Boolean);
-    return {
-      name: member.name.trim(),
-      budget_vnd: inputMoney(member.budget),
-      vegetarian: member.vegetarian,
-      avoid_allergens: terms.filter(term => !allergyPrefix.test(term)),
-      allergies: terms.filter(term => allergyPrefix.test(term))
-        .flatMap(term => term.replace(allergyPrefix, "").split(/\s+và\s+/i)),
-      preferred_dish: member.blind ? "" : member.wants.trim(),
-    };
-  });
+  return state.members.map(member => ({
+    name: member.name.trim(),
+    budget_vnd: inputMoney(member.budget),
+    vegetarian: member.vegetarian,
+    avoid_keywords: member.avoid.split(/[,;]+/).map(term => term.trim()).filter(Boolean),
+    allergies: member.allergies.split(/[,;]|\s+và\s+/i)
+      .map(term => term.trim().replace(/^dị ứng\s+/i, "")).filter(Boolean),
+    preferred_dish: member.blind && !member.dishRequired ? "" : member.wants.trim(),
+    dish_required: member.dishRequired,
+    blind_bag: member.blind && !member.dishRequired,
+  }));
 }
 
 async function request(action, fields = {}) {
   const response = await fetch("/api/preview", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action, members: membersForCheck(), ...fields }),
-    signal: AbortSignal.timeout(10_000),
+    body: JSON.stringify({ action, ...fields }),
+    signal: AbortSignal.timeout(135_000),
   });
-  const result = await response.json();
-  if (!response.ok) throw new Error(result.error);
+  const result = await response.json().catch(() => null);
+  if (!response.ok || !result) {
+    const error = new Error(result?.error || "Máy chủ chưa gửi được dữ liệu. Hãy thử lại.");
+    error.code = result?.code || (response.status >= 500 || !result ? "retry" : "");
+    error.draft = result?.draft;
+    throw error;
+  }
   return result;
 }
 
 function resetCart() {
   state.restaurant = null;
   state.cart = null;
+  state.cartNotices = [];
   state.options = [];
   state.selections = [];
   state.changed.clear();
   state.swap = null;
   state.finalized = false;
   state.fallback = "";
+  state.draftId = null;
+  state.revision = null;
 }
 
 function navigate(step) {
@@ -105,22 +102,35 @@ function navigate(step) {
   state.status = "";
   state.errors = {};
   state.swap = null;
+  state.retry = null;
   render();
   title.focus();
   title.scrollIntoView({ block: "nearest" });
 }
 
-async function pending(message, action) {
+async function pending(message, action, retry = null) {
+  if (state.busy) return;
   state.busy = message;
   state.notice = "";
   state.status = "";
+  state.retry = null;
   announcement.textContent = message;
   render();
   try {
     await action();
   } catch (error) {
-    state.notice = error instanceof TypeError || ["AbortError", "TimeoutError"].includes(error.name)
-      ? "Không kết nối được máy chạy demo. Kiểm tra máy chủ rồi thử lại."
+    const timedOut = ["AbortError", "TimeoutError"].includes(error.name);
+    const disconnected = error instanceof TypeError;
+    if (error.code === "draft_conflict") applyDraft(error.draft);
+    if (["draft_missing", "draft_invalid"].includes(error.code)) {
+      resetCart();
+      navigate(2);
+    }
+    if (timedOut || disconnected || error.code === "retry") {
+      state.retry = retry || (() => pending(message, action));
+    }
+    state.notice = timedOut ? "Máy chủ phản hồi quá lâu. Hãy thử lại."
+      : disconnected ? "Không kết nối được máy chạy demo. Kiểm tra máy chủ rồi thử lại."
       : error.message;
   } finally {
     state.busy = "";
@@ -147,7 +157,7 @@ function renderInput() {
         <div class="field-line"><label for="draft">Tin nhắn nhóm</label>${textButton("Tải ví dụ", "example")}</div>
         <textarea class="control" id="draft" name="text" placeholder="Mai: muốn ăn cơm gà, 75k&#10;An: ăn chay, không cay, 65k" ${error ? errorAttrs("draft", error) : 'aria-describedby="draft-hint"'} maxlength="12000">${escape(state.text)}</textarea>
         ${fieldError("draft", error)}
-        <p class="helper" id="draft-hint">Bản thử đọc theo mẫu <strong>Tên: yêu cầu, ngân sách</strong>. Mỗi người một dòng.</p>
+        <p class="helper" id="draft-hint">Ghi tên, món muốn ăn, điều kiêng và ngân sách nếu có. Có thể dán nguyên tin nhắn nhóm.</p>
       </div>
       <div class="field budget-field">
         <label for="common-budget">Ngân sách chung mỗi người</label>
@@ -156,7 +166,22 @@ function renderInput() {
         <p class="helper" id="common-hint">Không bắt buộc. Đã bao gồm phí ship.</p>
       </div>
       <div class="actions">${textButton("Nhập thủ công", "manual")}<button class="button primary" type="submit">Đọc yêu cầu</button></div>
-    </form>`;
+    </form>
+    <div id="saved-content">${renderSaved()}</div>`;
+}
+
+function renderSaved() {
+  return `${state.savedNotice ? `<p class="helper">${escape(state.savedNotice)} ${textButton("Tải lại", "reload-saved")}</p>` : ""}
+    ${state.profiles.length ? `<details class="source-draft"><summary>Hồ sơ đã lưu trên máy này (${state.profiles.length})</summary>
+      ${state.profiles.map((profile, index) => {
+        const details = [profile.name, profile.vegetarian ? "ăn chay" : "",
+          profile.allergies.length ? "dị ứng " + profile.allergies.join(", ") : ""].filter(Boolean).join(" · ");
+        return `<p>${escape(details)} ${textButton("Thêm người này", "profile", `data-index="${index}" aria-label="Thêm ${escape(profile.name)}"`)}</p>`;
+      }).join("")}
+    </details>` : ""}
+    ${state.history.length ? `<details class="source-draft"><summary>Lịch sử giỏ đã chốt (${state.history.length})</summary>
+      ${state.history.map(order => `<article><strong>${escape(order.restaurant_name)}</strong> · ${money(order.total_order_vnd)}<small> · ${escape(new Date(order.created_at).toLocaleString("vi-VN"))}</small><ul>${order.items.map(item => `<li>${escape(item.member_name)}: ${escape(item.dish_name)}</li>`).join("")}</ul></article>`).join("")}
+    </details>` : ""}`;
 }
 
 function memberField(index, key, label, placeholder = "") {
@@ -174,13 +199,15 @@ function renderMembers() {
       <div class="member-grid">
         ${memberField(index, "name", "Tên")}
         ${memberField(index, "budget", "Ngân sách gồm ship", "70.000đ")}
-        ${memberField(index, "avoid", "Dị ứng hoặc điều kiêng", "Ví dụ dị ứng đậu phộng, cay")}
+        ${memberField(index, "allergies", "Dị ứng", "Ví dụ đậu phộng, tôm")}
+        ${memberField(index, "avoid", "Điều kiêng hoặc món không thích", "Ví dụ cay, thịt heo")}
         ${memberField(index, "wants", "Món muốn ăn", "Ví dụ cơm gà")}
       </div>
       <div class="member-actions">
         <div class="check-row">
           <label class="check-label"><input type="checkbox" data-member="${index}" data-field="vegetarian" ${member.vegetarian ? "checked" : ""}> Ăn chay</label>
           <label class="check-label"><input type="checkbox" data-member="${index}" data-field="blind" ${member.blind ? "checked" : ""}> Ăn gì cũng được</label>
+          <label class="check-label"><input type="checkbox" data-member="${index}" data-field="dishRequired" ${member.dishRequired ? "checked" : ""}> Chỉ chọn món này</label>
         </div>
         ${state.members.length > 1 ? textButton("Xóa người", "remove", `data-index="${index}" aria-label="Xóa người ${index + 1}"`) : ""}
       </div>
@@ -205,7 +232,9 @@ function renderRestaurants() {
   }).join("");
   return `<div class="cart-heading"><span class="status-tag">Menu mẫu</span></div>
     ${rows ? `<div class="restaurant-list">${rows}</div>` : alert(
-      membersForCheck().some(member => member.allergies.length)
+      membersForCheck().some(member => member.dish_required)
+        ? "Chưa có quán đáp ứng món bắt buộc và các điều kiện của cả nhóm. Quay lại xác nhận để kiểm tra món muốn ăn, điều kiêng và ngân sách."
+        : membersForCheck().some(member => member.allergies.length)
         ? "Chưa tìm được quán phù hợp. Với món thiếu thông tin dị ứng, cần xác nhận thành phần trước khi chọn."
         : "Chưa có quán nào đáp ứng đủ điều kiện và ngân sách của cả nhóm. Quay lại kiểm tra thông tin từng người."
     )}
@@ -222,11 +251,15 @@ function renderCart() {
         controls = `<form class="swap-form" data-form="swap" data-index="${index}">
           <label class="field-label" for="replacement">Món thay thế cho ${escape(item.member_name)}</label>
           <select class="control" id="replacement" name="dish" required><option value="">Chọn món</option>
-          ${others.map(dish => `<option value="${escape(dish.id)}">${escape(dish.name)} · ${money(dish.price + item.ship_share_vnd)}</option>`).join("")}
+          ${others.map(dish => `<option value="${escape(dish.id)}" ${state.replacement === dish.id ? "selected" : ""}>${escape(dish.name)} · ${money(dish.price + item.ship_share_vnd)}</option>`).join("")}
           </select>
+          <label class="field-label" for="swap-feedback">Hoặc nói món muốn đổi</label>
+          <input class="control" id="swap-feedback" name="feedback" value="${escape(state.swapFeedback)}" maxlength="300" placeholder="Ví dụ hôm nay mình muốn ăn gà không cay" ${errorAttrs("swap-feedback", state.errors.feedback)}>
+          ${fieldError("swap-feedback", state.errors.feedback)}
+          ${button("Để AI gợi ý", "ai-swap", "secondary", `data-index="${index}"`)}
           <div class="swap-actions"><button class="button secondary" type="submit">Kiểm và đổi món</button>${textButton("Hủy đổi", "cancel")}</div>
         </form>`;
-      } else if (state.changed.has(index)) {
+      } else if (state.changed.has(item.member_name)) {
         controls = '<p class="helper">Đã dùng lượt đổi món</p>';
       } else if (others.length) {
         controls = textButton("Đổi món", "swap", `data-index="${index}" aria-label="Đổi món cho ${escape(item.member_name)}"`);
@@ -242,6 +275,8 @@ function renderCart() {
     </article>`;
   }).join("");
   return `<div class="cart-heading"><h3>${escape(state.cart.restaurant_name)}</h3><span class="status-tag success">Giỏ đã kiểm</span></div>
+    ${!state.finalized ? state.cartNotices.map(message => alert(message)).join("") : ""}
+    ${!state.finalized ? `<label class="check-label"><input id="save-profiles" type="checkbox" ${state.saveProfiles ? "checked" : ""}> Lưu tên và điều kiện ăn uống thành hồ sơ trên máy này</label>` : ''}
     ${state.finalized ? alert("Đã chốt giỏ. Sao chép danh sách để tự đặt trên ứng dụng giao đồ ăn.", "success") : ""}
     ${rows}
     ${state.status ? alert(state.status, "success") : ""}
@@ -255,11 +290,13 @@ function renderCart() {
 
 function renderSummary() {
   const rows = [["Số người", state.members.length ? state.members.length + " người" : "Chưa nhập"]];
-  rows.push(["Quán đã chọn", state.restaurant?.name || "Chưa chọn"]);
-  if (state.cart) {
-    rows.push(["Tiền món", money(state.cart.total_food_vnd)], ["Phí ship", money(state.cart.shipping_fee_vnd)], ["Tổng đơn", money(state.cart.total_order_vnd)]);
+  const hasCurrentRequirements = state.confirmedMembers === JSON.stringify(membersForCheck());
+  const cart = hasCurrentRequirements ? state.cart : null;
+  rows.push(["Quán đã chọn", hasCurrentRequirements && state.restaurant?.name || "Chưa chọn"]);
+  if (cart) {
+    rows.push(["Tiền món", money(cart.total_food_vnd)], ["Phí ship", money(cart.shipping_fee_vnd)], ["Tổng đơn", money(cart.total_order_vnd)]);
   }
-  const rounded = state.cart && state.cart.items.reduce((total, item) => total + item.total_member_vnd, 0) > state.cart.total_order_vnd;
+  const rounded = cart && cart.items.reduce((total, item) => total + item.total_member_vnd, 0) > cart.total_order_vnd;
   document.querySelector("#summary-content").innerHTML = `<dl>${rows.map(([label, value]) =>
     `<div class="summary-line ${label === "Tổng đơn" ? "total" : ""}"><dt>${label}</dt><dd>${escape(value)}</dd></div>`).join("")}</dl>
     ${rounded ? '<p class="summary-note">Phần ship từng người được làm tròn lên đến đồng.</p>' : ""}`;
@@ -272,7 +309,10 @@ function render() {
     `<li ${index === state.step ? 'aria-current="step"' : index < state.step ? 'class="passed"' : ""}>
       <span class="step-marker"><span class="step-number">${index + 1}</span>${label}</span>
     </li>`).join("");
-  content.innerHTML = (state.notice ? alert(state.notice, "error") : "") +
+  const notice = state.retry
+    ? `<div class="notice error" tabindex="-1"><p role="alert">${escape(state.notice)}</p>${button("Thử lại", "retry")}</div>`
+    : state.notice ? alert(state.notice, "error") : "";
+  content.innerHTML = notice +
     (state.busy ? alert(state.busy) : "") +
     [renderInput, renderMembers, renderRestaurants, renderCart][state.step]();
   content.setAttribute("aria-busy", String(Boolean(state.busy)));
@@ -280,7 +320,20 @@ function render() {
   renderSummary();
 }
 
-function readInput() {
+function memberErrors() {
+  const errors = {};
+  const names = state.members.map(member => normalize(member.name.trim()));
+  state.members.forEach((member, index) => {
+    const field = key => `member-${index}-${key}`;
+    if (!names[index]) errors[field("name")] = "Nhập tên để phân biệt suất của từng người.";
+    else if (names.indexOf(names[index]) !== index) errors[field("name")] = "Tên bị trùng. Thêm họ hoặc biệt danh.";
+    if (!inputMoney(member.budget)) errors[field("budget")] = "Nhập ngân sách đã gồm phí ship.";
+    if (member.dishRequired && !member.wants.trim()) errors[field("wants")] = "Nhập tên món bắt buộc.";
+  });
+  return errors;
+}
+
+async function readInput() {
   state.errors = {};
   if (!state.text.trim()) state.errors.text = "Dán tin nhắn nhóm hoặc chọn Nhập thủ công.";
   if (state.budget.trim() && !inputMoney(state.budget)) state.errors.budget = "Nhập số tiền, ví dụ 70.000đ.";
@@ -289,35 +342,67 @@ function readInput() {
     content.querySelector("[aria-invalid]")?.focus();
     return;
   }
-  const snapshot = JSON.stringify([state.text, state.budget]);
-  if (state.parsed !== snapshot) {
-    state.members = state.text.split(/\r?\n/).filter(line => line.trim()).map(line => readLine(line, state.budget));
-    state.parsed = snapshot;
-    resetCart();
+  const input = JSON.stringify([state.text, state.budget]);
+  if (input === state.parsed) {
+    navigate(1);
+    return;
   }
-  navigate(1);
+  await pending("Đang đọc yêu cầu bằng AI…", async () => {
+    const parsed = await request("parse", { text: state.text, shared_budget_vnd: inputMoney(state.budget) });
+    if (parsed.intent === "refuse") {
+      throw new Error("Hãy nhập yêu cầu chọn món trưa theo menu mẫu và các điều kiện ăn uống của nhóm.");
+    }
+    if (parsed.intent === "swap") {
+      throw new Error("Để đổi một suất, mở giỏ đã kiểm và chọn Đổi món cạnh tên người đó.");
+    }
+    state.members = parsed.members.map(member => memberFromApi(member, state.budget));
+    if (!state.members.length) state.members.push({ ...emptyMember(), budget: state.budget });
+    state.parsed = input;
+    state.preferredRestaurantId = parsed.restaurant_id;
+    state.confirmedMembers = "";
+    resetCart();
+    navigate(1);
+    state.errors = memberErrors();
+    if (parsed.intent === "clarify" && !Object.keys(state.errors).length) {
+      state.notice = parsed.reason || "Kiểm lại món muốn ăn, điều kiêng và ngân sách trước khi tìm quán.";
+    }
+  }, readInput);
 }
 
 async function findRestaurants() {
-  state.errors = {};
-  const names = state.members.map(member => normalize(member.name.trim()));
-  state.members.forEach((member, index) => {
-    if (!member.name.trim()) state.errors[`member-${index}-name`] = "Nhập tên để phân biệt suất của từng người.";
-    else if (names.indexOf(names[index]) !== index) state.errors[`member-${index}-name`] = "Tên bị trùng. Thêm họ hoặc biệt danh.";
-    if (!inputMoney(member.budget)) state.errors[`member-${index}-budget`] = "Nhập ngân sách đã gồm phí ship.";
-  });
+  state.errors = memberErrors();
   if (Object.keys(state.errors).length) {
     render();
     content.querySelector("[aria-invalid]")?.focus();
     return;
   }
-  await pending("Đang tìm quán phù hợp…", async () => {
-    const result = await request("restaurants");
-    resetCart();
-    state.restaurants = result.restaurants;
+  const members = membersForCheck();
+  const confirmedMembers = JSON.stringify(members);
+  if (confirmedMembers === state.confirmedMembers) {
     navigate(2);
-    title.focus();
-  });
+    return;
+  }
+  await pending("Đang tìm quán phù hợp…", async () => {
+    const result = await request("restaurants", { members });
+    resetCart();
+    state.confirmedMembers = confirmedMembers;
+    state.restaurants = result.restaurants;
+    if (state.preferredRestaurantId) state.restaurants.sort((a, b) => Number(b.restaurant_id === state.preferredRestaurantId) - Number(a.restaurant_id === state.preferredRestaurantId));
+    navigate(2);
+  }, findRestaurants);
+}
+
+function applyDraft(draft) {
+  state.cart = draft.cart;
+  state.options = draft.options;
+  state.selections = draft.selections;
+  state.draftId = draft.draft_id;
+  state.revision = draft.revision;
+  state.changed = new Set(draft.changed_members);
+  state.cartNotices = draft.notices;
+  state.finalized = draft.finalized;
+  state.fallback = "";
+  state.swap = null;
 }
 
 async function chooseRestaurant(id) {
@@ -326,54 +411,61 @@ async function chooseRestaurant(id) {
     return;
   }
   await pending("Đang dựng và kiểm giỏ…", async () => {
-    const result = await request("options", { restaurant: id });
-    if (result.options.some(dishes => !dishes.length)) throw new Error("Quán này chưa có món phù hợp cho tất cả mọi người.");
-    const selections = result.options.map((dishes, index) => {
-      const member = state.members[index];
-      const preference = normalize(member.wants.trim());
-      const recent = state.recentDishes.get(normalize(member.name.trim()));
-      const alternatives = dishes.filter(dish => dish.id !== recent);
-      const candidates = alternatives.length ? alternatives : dishes;
-      const preferred = !member.blind && preference && candidates.find(dish => normalize(dish.name).includes(preference));
-      return { member_name: member.name.trim(), dish_id: (preferred || candidates[0]).id, is_blind_bag: member.blind };
-    });
-    const cart = await request("check", { restaurant: id, selections });
-    if (!cart.ok) throw new Error(cart.errors.join(" "));
-    resetCart();
+    const draft = await request("options", { restaurant: id, members: membersForCheck() });
     state.restaurant = state.restaurants.find(restaurant => restaurant.restaurant_id === id);
-    state.options = result.options;
-    state.selections = selections;
-    state.cart = cart;
+    applyDraft(draft);
     navigate(3);
   });
 }
 
 async function replaceDish(index, id) {
-  if (state.changed.has(index)) return;
+  const memberName = state.selections[index]?.member_name;
+  if (!memberName || !id || state.changed.has(memberName)) return;
   const selections = state.selections.map((selection, choice) => choice === index ? { ...selection, dish_id: id } : selection);
   await pending("Đang kiểm món thay thế…", async () => {
-    const cart = await request("check", { restaurant: state.restaurant.restaurant_id, selections });
-    if (!cart.ok) throw new Error(cart.errors.join(" "));
-    state.cart = cart;
-    state.selections = selections;
-    state.changed.add(index);
-    state.swap = null;
-    announcement.textContent = "Đã đổi món cho " + selections[index].member_name + ".";
-  });
+    applyDraft(await request("check", { draft_id: state.draftId, revision: state.revision, selections }));
+    announcement.textContent = "Đã đổi món cho " + memberName + ".";
+    state.status = announcement.textContent;
+  }, () => replaceDish(index, state.replacement));
+}
+
+async function recommendSwap(index, feedback) {
+  const memberName = state.selections[index]?.member_name;
+  if (!memberName || state.changed.has(memberName)) return;
+  if (!feedback.trim()) {
+    state.errors.feedback = "Nhập lý do hoặc món muốn đổi sang.";
+    state.notice = "";
+    state.retry = null;
+    render();
+    content.querySelector("#swap-feedback").focus();
+    return;
+  }
+  state.errors = {};
+  await pending("AI đang tìm món thay thế rồi kiểm tra lại giỏ…", async () => {
+    applyDraft(await request("swap", { draft_id: state.draftId, revision: state.revision, member_name: memberName, feedback }));
+    announcement.textContent = "Đã đổi món theo yêu cầu cho " + memberName + ".";
+    state.status = announcement.textContent;
+  }, () => recommendSwap(index, state.swapFeedback));
 }
 
 async function finalizeCart() {
   await pending("Đang kiểm lại toàn bộ giỏ…", async () => {
-    const cart = await request("check", { restaurant: state.restaurant.restaurant_id, selections: state.selections });
-    if (!cart.ok) {
-      state.cart = null;
-      throw new Error(cart.errors.join(" "));
-    }
-    state.cart = cart;
-    state.finalized = true;
-    for (const item of cart.items) state.recentDishes.set(normalize(item.member_name), item.dish_id);
+    applyDraft(await request("finalize", { draft_id: state.draftId, revision: state.revision, save_profiles: state.saveProfiles }));
     announcement.textContent = "Đã chốt giỏ.";
   });
+}
+
+async function loadSaved() {
+  try {
+    const { members, orders } = await request("saved");
+    state.profiles = members;
+    state.history = orders;
+    state.savedNotice = "";
+  } catch {
+    state.savedNotice = "Chưa tải được hồ sơ và lịch sử.";
+  }
+  const saved = content.querySelector("#saved-content");
+  if (saved) saved.innerHTML = renderSaved();
 }
 
 async function copyCart() {
@@ -407,10 +499,17 @@ guideToggle.addEventListener("click", () => {
 
 content.addEventListener("input", event => {
   const field = event.target;
-  if (field.dataset.member !== undefined) {
+  if (field.id === "save-profiles") {
+    state.saveProfiles = field.checked;
+  } else if (field.dataset.member !== undefined) {
     state.members[Number(field.dataset.member)][field.dataset.field] = field.type === "checkbox" ? field.checked : field.value;
+    renderSummary();
   } else if (field.name === "text" || field.name === "budget") {
     state[field.name] = field.value;
+  } else if (field.name === "feedback") {
+    state.swapFeedback = field.value;
+  } else if (field.name === "dish") {
+    state.replacement = field.value;
   }
 });
 
@@ -419,7 +518,7 @@ content.addEventListener("submit", async event => {
   if (state.busy) return;
   const form = event.target;
   switch (form.dataset.form) {
-    case "read": readInput(); break;
+    case "read": await readInput(); break;
     case "members": await findRestaurants(); break;
     case "swap": await replaceDish(Number(form.dataset.index), new FormData(form).get("dish")); break;
   }
@@ -436,6 +535,20 @@ content.addEventListener("click", async event => {
       render();
       content.querySelector("#draft").focus();
       break;
+    case "profile": {
+      const profile = state.profiles[index];
+      if (!profile) break;
+      let memberIndex = state.members.findIndex(member => normalize(member.name.trim()) === normalize(profile.name));
+      if (memberIndex === -1) {
+        memberIndex = state.members.length;
+        state.members.push(memberFromApi(profile, state.budget));
+      }
+      navigate(1);
+      content.querySelector(`#member-${memberIndex}-${inputMoney(state.members[memberIndex].budget) ? "name" : "budget"}`).focus();
+      break;
+    }
+    case "reload-saved": await loadSaved(); break;
+    case "retry": await state.retry?.(); break;
     case "manual":
       if (!state.members.length) state.members.push({ ...emptyMember(), budget: state.budget });
       navigate(1);
@@ -457,15 +570,24 @@ content.addEventListener("click", async event => {
     case "choose": await chooseRestaurant(target.dataset.id); break;
     case "swap":
       state.swap = index;
+      state.swapFeedback = "";
+      state.replacement = "";
+      state.errors = {};
       render();
       content.querySelector("#replacement").focus();
       break;
     case "cancel":
       const swapIndex = state.swap;
       state.swap = null;
+      state.notice = "";
+      state.retry = null;
       render();
       content.querySelector(`[data-action="swap"][data-index="${swapIndex}"]`)?.focus();
       break;
+    case "ai-swap": {
+      await recommendSwap(index, state.swapFeedback);
+      break;
+    }
     case "copy": await copyCart(); break;
     case "finalize": await finalizeCart(); break;
     case "restart":
@@ -475,9 +597,14 @@ content.addEventListener("click", async event => {
       state.parsed = "";
       state.members = [];
       state.restaurants = [];
+      state.confirmedMembers = "";
+      state.preferredRestaurantId = null;
+      state.saveProfiles = false;
       navigate(0);
+      await loadSaved();
       break;
   }
 });
 
 render();
+loadSaved();
