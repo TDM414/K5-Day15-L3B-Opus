@@ -93,14 +93,50 @@ th { background:var(--ink); color:var(--cream); }
 .s6 .big { font-size:56px; }
 .s6 .card { padding:12px 20px; }
 .s6 th, .s6 td { padding:6px 14px; font-size:17px; }
+.slide.cover { display:block; padding:0; background:var(--orange) radial-gradient(rgba(255,246,233,.28) 3px, transparent 3.5px) 0 0 / 34px 34px; }
+.cover .dishpop { position:absolute; object-fit:cover; border-radius:50%; border:6px solid var(--cream); box-shadow:0 0 0 4px var(--ink), 8px 10px 0 4px var(--ink); }
+.cover .center { position:absolute; left:0; right:0; top:62px; display:flex; flex-direction:column; align-items:center; gap:8px; }
+.cover .chef { height:238px; background:var(--cream); border:5px solid var(--ink); border-radius:50%; padding:12px; box-shadow:8px 8px 0 var(--ink); }
+.cover .name { font-size:142px; font-weight:700; line-height:1; letter-spacing:-4px; color:var(--cream); -webkit-text-stroke:4px var(--ink); text-shadow:8px 8px 0 var(--ink); }
+.cover .name span { color:var(--yellow); }
+.cover .line { font-size:32px; font-weight:700; background:var(--cream); border:4px solid var(--ink); border-radius:99px; padding:4px 30px; box-shadow:5px 5px 0 var(--ink); transform:rotate(-1.5deg); }
+.cover .motto { margin-top:8px; font-size:24px; font-weight:700; background:var(--yellow); border:3px solid var(--ink); border-radius:12px; padding:5px 20px; transform:rotate(1deg); }
+.cover .stick { position:absolute; font-size:22px; font-weight:700; border:4px solid var(--ink); border-radius:24px 24px 24px 6px; padding:9px 18px; box-shadow:5px 5px 0 var(--ink); white-space:nowrap; }
+.cover .team { position:absolute; left:50%; bottom:22px; transform:translateX(-50%); width:640px; text-align:center; font-size:16px; line-height:1.55; background:var(--ink); color:var(--cream); border-radius:18px; padding:10px 14px; }
 </style>
 </head>
 <body>
 
+<!-- 0 -->
+<section class="slide cover">
+  <img class="dishpop" src="../codebase/web/assets/menu/q01-m01.webp" alt="" style="left:-40px; top:-36px; width:230px; height:230px; transform:rotate(-12deg)">
+  <img class="dishpop" src="../codebase/web/assets/menu/q01-m14.webp" alt="" style="left:232px; top:-62px; width:170px; height:170px; transform:rotate(10deg)">
+  <img class="dishpop" src="../codebase/web/assets/menu/q03-m08.webp" alt="" style="left:470px; top:-84px; width:160px; height:160px; transform:rotate(-6deg)">
+  <img class="dishpop" src="../codebase/web/assets/menu/q01-m04.webp" alt="" style="left:862px; top:-66px; width:180px; height:180px; transform:rotate(-10deg)">
+  <img class="dishpop" src="../codebase/web/assets/menu/q01-m13.webp" alt="" style="left:1090px; top:-30px; width:230px; height:230px; transform:rotate(14deg)">
+  <img class="dishpop" src="../codebase/web/assets/menu/q03-m11.webp" alt="" style="left:-62px; top:252px; width:190px; height:190px; transform:rotate(8deg)">
+  <img class="dishpop" src="../codebase/web/assets/menu/q01-m15.webp" alt="" style="left:1150px; top:270px; width:190px; height:190px; transform:rotate(-9deg)">
+  <img class="dishpop" src="../codebase/web/assets/menu/q01-m09.webp" alt="" style="left:-30px; top:530px; width:225px; height:225px; transform:rotate(-8deg)">
+  <img class="dishpop" src="../codebase/web/assets/menu/q01-m12.webp" alt="" style="left:224px; top:590px; width:175px; height:175px; transform:rotate(12deg)">
+  <img class="dishpop" src="../codebase/web/assets/menu/q02-m01.webp" alt="" style="left:892px; top:592px; width:175px; height:175px; transform:rotate(-11deg)">
+  <img class="dishpop" src="../codebase/web/assets/menu/q01-m16.webp" alt="" style="left:1086px; top:522px; width:230px; height:230px; transform:rotate(9deg)">
+  <div class="stick" style="background:var(--cream); left:150px; top:196px; transform:rotate(-9deg)">Trưa nay ăn gì? 🤔</div>
+  <div class="stick" style="background:var(--pink); left:930px; top:190px; transform:rotate(8deg)">Gì cũng được ạ 🥺</div>
+  <div class="stick" style="background:var(--blue); left:128px; top:420px; transform:rotate(7deg)">Dị ứng tôm nha 🦐</div>
+  <div class="stick" style="background:var(--lime); left:934px; top:426px; transform:rotate(-7deg)">Cộng ship chưa? 💸</div>
+  <div class="center">
+    <img class="chef" src="../codebase/web/assets/chef.webp" alt="">
+    <div class="name">Lunchie<span>.</span></div>
+    <div class="line">Chốt cơm trưa cho cả nhóm</div>
+    <div class="motto">AI đề xuất · Code kiểm · Người quyết</div>
+  </div>
+  <div class="team"><b>Nhóm Opus · L3B · Track D</b><br>Trần Duy Mạnh · Trần Thị Hồng Gấm · Nguyễn Xuân Dương · Đinh Lê Thịnh</div>
+</section>
+
 <!-- 1 -->
 <section class="slide s1">
-  <span class="tag">LUNCHIE · Nhóm Opus · L3B · 11:30, tới giờ gom cơm</span>
-  <h1>Đặt cơm hộ cả nhóm:<br><mark>hơn nửa phải hỏi lại hoặc sửa giỏ</mark></h1>
+  <span class="tag">NGƯỜI ĐẶT HỘ · 11:30, tới giờ gom cơm</span>
+  <h1>Đặt cơm hộ cả nhóm:<br><mark>hơn một nửa phải hỏi lại hoặc sửa đơn</mark></h1>
   <div class="whom"><b>Ai:</b> nhân viên văn phòng đặt cơm hộ nhóm từ 3 người · <b>Việc:</b> chốt một giỏ hợp khẩu vị, điều kiêng và ngân sách gồm ship<br><b>Đáp án khảo sát:</b> “Quán hết món phải đổi” (dòng 13, câu 7)</div>
   <div class="row">
     <div class="col" style="flex:0 0 440px; gap:14px">
@@ -109,7 +145,7 @@ th { background:var(--ink); color:var(--cream); }
       <div class="bubble"><b>Xuân Dương</b>cộng ship vô là lố tiền rồi 💸</div>
       <div class="bubble me"><b>Lê Thịnh (người đặt hộ)</b>…để hỏi lại 🫠</div>    </div>
     <div class="col">
-      <div class="card orange"><div class="big">51,8%</div>phải hỏi lại hoặc sửa giỏ ít nhất 1 lần (29/56)</div>
+      <div class="card orange"><div class="big">51,8%</div>29/56 người đặt hộ từng phải hỏi lại hoặc sửa đơn</div>
       <div class="row">
         <div class="card yellow col" style="gap:0"><div class="big" style="font-size:44px">57,1%</div>gặp “ăn gì cũng được”</div>
         <div class="card pink col" style="gap:0"><div class="big" style="font-size:44px">28,6%</div>có người kiêng / dị ứng</div>
@@ -175,7 +211,7 @@ th { background:var(--ink); color:var(--cream); }
       <div class="card lime out"><b>Kết quả lượt 2:</b> báo món của Bình đã hết hàng, món của Dũng không có trong menu · gợi ý Cơm gà xối mỡ và Cơm cuộn ba rọi để người đặt duyệt · tổng 109.000đ</div>
     </div>
   </div>
-  <div class="card strip"><b>Dự phòng B14:</b> ép bỏ qua dị ứng hải sản → từ chối, không xếp món gây dị ứng. Mạng hỏng thì chuyển sang video dự phòng.</div>
+  <div class="card strip"><b>Dự phòng B14:</b> ép bỏ qua dị ứng hải sản → từ chối, không xếp món gây dị ứng.</div>
   <div class="src">eval/benchmark.csv · eval/run-6.csv · ảnh món do AI tạo để minh hoạ</div><div class="num">4</div>
 </section>
 
@@ -206,50 +242,46 @@ th { background:var(--ink); color:var(--cream); }
 <!-- 6 -->
 <section class="slide s6">
   <span class="tag">CHI PHÍ KHI DÙNG THẬT</span>
-  <h1>Một task thành công <mark>chưa tới 0,05 cent</mark></h1>
+  <h1>Một task thành công <mark>tốn khoảng 10 đồng</mark></h1>
   <div class="row">
-    <div class="card yellow col" style="gap:4px"><div class="big">$0,00040</div>chi phí / task thành công<br><span class="small">DeepSeek v4.1 Flash, tính theo tỉ lệ đạt 96%</span></div>
-    <div class="card blue col" style="gap:4px"><div class="big">$0,17</div>mỗi tháng cho 100 người đặt hộ<br><span class="small">≈ $0,0017 / người / tháng</span></div>
+    <div class="card yellow col" style="gap:4px"><div class="big">≈10đ</div>chi phí / task thành công<br><span class="small">DeepSeek v4.1 Flash, tính theo tỉ lệ đạt 96%</span></div>
+    <div class="card blue col" style="gap:4px"><div class="big">≈4.500đ</div>mỗi tháng cho 100 người đặt hộ<br><span class="small">≈ 45đ / người / tháng</span></div>
     <div class="card lime col" style="gap:4px"><div class="big">≈19,7′</div>mục tiêu tiết kiệm / người / tháng<br><span class="small"><b>Tự ước tính, chưa đo</b></span></div>
   </div>
   <table>
     <tr><th>Model (giá)</th><th>/ task đạt</th><th>Tháng · 50 người</th><th>Tháng · 100 người</th><th>Tháng · 200 người</th></tr>
-    <tr style="background:var(--lime)"><td><b>deepseek-v4.1-flash</b></td><td>$0,00040</td><td>$0,085</td><td>$0,17</td><td>$0,34</td></tr>
-    <tr><td>gemini-2.5-flash</td><td>$0,0019</td><td>$0,40</td><td>$0,80</td><td>$1,60</td></tr>
-    <tr><td>gemini-4-hydrogen</td><td>$0,0066</td><td>$1,40</td><td>$2,80</td><td>$5,60</td></tr>
+    <tr style="background:var(--lime)"><td><b>deepseek-v4.1-flash</b></td><td>≈10đ</td><td>≈2.200đ</td><td>≈4.500đ</td><td>≈8.900đ</td></tr>
+    <tr><td>gemini-2.5-flash</td><td>≈50đ</td><td>≈10.500đ</td><td>≈20.900đ</td><td>≈41.800đ</td></tr>
+    <tr><td>gemini-4-hydrogen</td><td>≈170đ</td><td>≈36.500đ</td><td>≈73.100đ</td><td>≈146.200đ</td></tr>
   </table>
   <div class="card small"><b>Đáng làm:</b> tiền model rất nhỏ so với thời gian muốn tiết kiệm, rủi ro nằm ở độ đúng.<br>Mô phỏng 50 phiên, 0 phiên lỗi, 3 kiểu người dùng (1,5 · 4 · 10,4 phiên/tháng). Token đo trên DeepSeek, giá model khác là quy đổi nên có thể lệch. Số người dùng và số lượt hỏi mỗi phiên là tự ước tính.</div>
-  <div class="src">cost/cost-estimate.md · simulate-1@20261128-121751 · giá xem 28/11/2026</div><div class="num">6</div>
+  <div class="src">cost/cost-estimate.md (USD) · simulate-1@20261128-121751 · giá model xem 28/11/2026 · quy đổi 26.100đ/USD (Vietcombank bán ra 9/10/2026)</div><div class="num">6</div>
 </section>
 
 <!-- 7 -->
 <section class="slide lime">
   <span class="tag">KẾT LUẬN</span>
-  <h1 style="font-size:92px">GO, thử nhỏ</h1>
-  <div style="font-size:26px; font-weight:700">Cho người thật dùng thử, người đặt vẫn duyệt từng giỏ trước khi đặt.</div>
-  <div class="row" style="margin-top:14px">
-    <div class="card col"><h3><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#1d1410" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#c9f24d"/><path d="M7 12.5l3.5 3.5L17 9"/></svg>Pain có thật</h3><div class="big">51,8%</div>phải hỏi lại hoặc sửa giỏ (n = 56)</div>
-    <div class="card col"><h3><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#1d1410" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#c9f24d"/><path d="M7 12.5l3.5 3.5L17 9"/></svg>Qua chuẩn</h3><div class="big">96%</div>so với chuẩn 80%, điểm trong mẫu</div>
-    <div class="card col"><h3><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#1d1410" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#c9f24d"/><path d="M7 12.5l3.5 3.5L17 9"/></svg>Rẻ</h3><div class="big">$0,17</div>mỗi tháng cho 100 người</div>
+  <h1 style="font-size:80px">GO, thử nhỏ</h1>
+  <div style="font-size:27px; font-weight:700">Làm tiếp: cho người đặt hộ dùng với model thật. Chưa mở rộng.</div>
+  <div class="row">
+    <div class="card col"><h3>Có người cần?</h3><div class="big">51,8%</div>người đặt hộ từng phải hỏi lại hoặc sửa đơn (khảo sát, n = 56)</div>
+    <div class="card col"><h3>Làm đúng chưa?</h3><div class="big">26/27</div>câu thử đạt, chuẩn là 80%. Điểm trong mẫu</div>
+    <div class="card col"><h3>Có đắt không?</h3><div class="big">≈4.500đ</div>tiền model mỗi tháng cho 100 người</div>
   </div>
-  <div class="card"><b>Chưa biết:</b> độ đúng trên câu chưa từng thấy, và thời gian thực sự tiết kiệm được. Rủi ro lớn nhất là dị ứng, không phải tiền.</div>
+  <div class="card"><b>Người dùng thử:</b> 3/3 người lấy được danh sách để tự đặt (giao diện chạy với model giả lập).<br><b>Chưa biết:</b> độ đúng trên câu mới, và thời gian thực sự tiết kiệm được.</div>
   <div class="src">Trang 1, 5, 6</div><div class="num">7</div>
 </section>
 
 <!-- 8 -->
 <section class="slide">
   <span class="tag">NẾU CÓ THÊM 1 TUẦN</span>
-  <h1>3 việc, <mark>theo đúng chỗ đang hổng</mark></h1>
-  <div class="row" style="margin-top:12px">
-    <div class="card orange col"><div class="big">1</div><h3>Thử bằng câu giữ riêng</h3>Bộ câu mới chưa dùng để chỉnh code, người trong nhóm chấm. Sửa luôn B02.<div class="small">Vì: 96% là điểm trong mẫu, còn trượt B02</div></div>
-    <div class="card pink col"><div class="big">2</div><h3>Bổ sung dữ liệu thành phần</h3>Để người dị ứng có thêm lựa chọn an toàn.<div class="small">Vì: chỉ 1/52 món đủ thông tin để xét dị ứng</div></div>
-    <div class="card blue col"><div class="big">3</div><h3>Cho người thật dùng thử</h3>2–3 người ngoài nhóm, đo thời gian chốt giỏ.<div class="small">Vì: chưa có người dùng thử và chưa đo thời gian tiết kiệm</div></div>
+  <h1>3 việc <mark>sẽ làm tiếp</mark></h1>
+  <div class="row">
+    <div class="card orange col"><div class="big">1</div><h3>Hiện ghi chú cho quán</h3><div>Muốn ăn phở nhưng <b>bỏ hành</b>? Hiện ghi chú đó trên giỏ và trong bản sao để đặt.</div><div class="small">Hiện nay: code đã tạo ghi chú “không hành”, giao diện web chưa hiện</div></div>
+    <div class="card pink col"><div class="big">2</div><h3>Kiểm chắc hơn</h3>Thử bằng bộ câu mới, sửa B02, bổ sung dữ liệu thành phần.<div class="small">Vì: 96% là điểm trong mẫu, chỉ 1/52 món đủ thông tin để xét dị ứng</div></div>
+    <div class="card blue col"><div class="big">3</div><h3>Thử tiếp với model thật</h3>Người đặt hộ ngoài nhóm, đo thời gian chốt giỏ.<div class="small">Vì: 3 phiên vừa rồi dùng model giả lập, chưa đo thời gian</div></div>
   </div>
-  <div style="display:flex; align-items:center; gap:24px; margin-top:14px">
-    <img src="../codebase/web/assets/chef.webp" alt="" style="height:140px">
-    <div class="bubble" style="font-size:30px"><b>Lunchie</b>Trưa nay ăn gì? Để mình lo phần hỏi lại</div>
-  </div>
-  <div class="src">eval/report.md mục 4–5 · data/restaurants_sample.json</div><div class="num">8</div>
+  <div class="src">eval/report.md mục 4–5 · validation/log.md · codebase/tools.py</div><div class="num">8</div>
 </section>
 </body>
 </html>
