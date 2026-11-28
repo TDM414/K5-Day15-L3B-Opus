@@ -5,17 +5,20 @@
     "created_at": "2026-11-27",
     "version": "4",
     "ingredient_source": "data/processed/vietnamese_dishes.csv",
+    "image_source": "ai_generated_illustration",
     "serving_size": 1
   },
   "restaurants": [
     {
       "restaurant_id": "Q01",
+      "image_url": "/assets/menu/q01.webp",
       "name": "Bếp Cơm Nhà Văn Phòng",
       "style": "Cơm phần mặn - chay đa dạng, ít dầu mỡ",
       "shipping_fee_vnd": 16000,
       "menu": [
         {
           "dish_id": "Q01-M01",
+          "image_url": "/assets/menu/q01-m01.webp",
           "ten_mon": "Cơm gà xối mỡ",
           "price_vnd": 45000,
           "allergens": [],
@@ -33,6 +36,7 @@
         },
         {
           "dish_id": "Q01-M12",
+          "image_url": "/assets/menu/q01-m12.webp",
           "ten_mon": "Cơm cuộn ba rọi xông khói",
           "price_vnd": 48000,
           "allergens": [
@@ -51,6 +55,7 @@
         },
         {
           "dish_id": "Q01-M13",
+          "image_url": "/assets/menu/q01-m13.webp",
           "ten_mon": "Cơm chiên cá giòn",
           "price_vnd": 68000,
           "allergens": [
@@ -68,6 +73,7 @@
         },
         {
           "dish_id": "Q01-M04",
+          "image_url": "/assets/menu/q01-m04.webp",
           "ten_mon": "Cơm thịt kho trứng cút",
           "price_vnd": 42000,
           "allergens": [
@@ -86,6 +92,7 @@
         },
         {
           "dish_id": "Q01-M14",
+          "image_url": "/assets/menu/q01-m14.webp",
           "ten_mon": "Cơm ngũ sắc chay",
           "price_vnd": 36000,
           "allergens": [
@@ -101,6 +108,7 @@
         },
         {
           "dish_id": "Q01-M15",
+          "image_url": "/assets/menu/q01-m15.webp",
           "ten_mon": "Cơm saffron cà ri gà",
           "price_vnd": 45000,
           "allergens": [
@@ -119,6 +127,7 @@
         },
         {
           "dish_id": "Q01-M16",
+          "image_url": "/assets/menu/q01-m16.webp",
           "ten_mon": "Cơm tấm sườn bì chay",
           "price_vnd": 40000,
           "allergens": [
@@ -134,6 +143,7 @@
         },
         {
           "dish_id": "Q01-M17",
+          "image_url": "/assets/menu/q01-m17.webp",
           "ten_mon": "Cơm tôm bí đỏ",
           "price_vnd": 52000,
           "allergens": [
@@ -154,6 +164,7 @@
         },
         {
           "dish_id": "Q01-M09",
+          "image_url": "/assets/menu/q01-m09.webp",
           "ten_mon": "Cơm gà xì dầu",
           "price_vnd": 49000,
           "allergens": [
@@ -173,6 +184,7 @@
         },
         {
           "dish_id": "Q01-M10",
+          "image_url": "/assets/menu/q01-m10.webp",
           "ten_mon": "Cơm chiên chay Hoàng Hậu",
           "price_vnd": 43000,
           "allergens": [],
@@ -186,6 +198,7 @@
         },
         {
           "dish_id": "Q01-M11",
+          "image_url": "/assets/menu/q01-m11.webp",
           "ten_mon": "Cơm tấm sườn cây",
           "price_vnd": 55000,
           "allergens": [
@@ -209,12 +222,14 @@
     },
     {
       "restaurant_id": "Q02",
+      "image_url": "/assets/menu/q02.webp",
       "name": "Cơm Ngon Ba Miền",
       "style": "Cơm phần truyền thống, giá bình dân",
       "shipping_fee_vnd": 15000,
       "menu": [
         {
           "dish_id": "Q02-M01",
+          "image_url": "/assets/menu/q02-m01.webp",
           "ten_mon": "Cơm thịt bò xào lúc lắc",
           "price_vnd": 55000,
           "allergens": [],
@@ -232,6 +247,7 @@
         },
         {
           "dish_id": "Q02-M02",
+          "image_url": "/assets/menu/q02-m02.webp",
           "ten_mon": "Cơm cá lóc kho tộ",
           "price_vnd": 46000,
           "allergens": [
@@ -251,6 +267,7 @@
         },
         {
           "dish_id": "Q02-M11",
+          "image_url": "/assets/menu/q02-m11.webp",
           "ten_mon": "Cơm gà rau răm",
           "price_vnd": 42000,
           "allergens": [
@@ -270,6 +287,7 @@
         },
         {
           "dish_id": "Q02-M12",
+          "image_url": "/assets/menu/q02-m12.webp",
           "ten_mon": "Cơm chiên cá mặn chay",
           "price_vnd": 35000,
           "allergens": [
@@ -285,6 +303,7 @@
         },
         {
           "dish_id": "Q02-M05",
+          "image_url": "/assets/menu/q02-m05.webp",
           "ten_mon": "Cơm ba rọi chiên sả ớt",
           "price_vnd": 44000,
           "allergens": [],
@@ -301,6 +320,7 @@
         },
         {
           "dish_id": "Q02-M13",
+          "image_url": "/assets/menu/q02-m13.webp",
           "ten_mon": "Cơm chiên trứng chả lụa",
           "price_vnd": 38000,
           "allergens": [
@@ -319,6 +339,7 @@
         },
         {
           "dish_id": "Q02-M07",
+          "image_url": "/assets/menu/q02-m07.webp",
           "ten_mon": "Cơm bò xào sả ớt",
           "price_vnd": 52000,
           "allergens": [],
@@ -336,6 +357,7 @@
         },
         {
           "dish_id": "Q02-M08",
+          "image_url": "/assets/menu/q02-m08.webp",
           "ten_mon": "Cơm trộn thịt hầm",
           "price_vnd": 48000,
           "allergens": [
@@ -354,6 +376,7 @@
         },
         {
           "dish_id": "Q02-M09",
+          "image_url": "/assets/menu/q02-m09.webp",
           "ten_mon": "Cơm chiên rau củ chay",
           "price_vnd": 39000,
           "allergens": [
@@ -369,6 +392,7 @@
         },
         {
           "dish_id": "Q02-M10",
+          "image_url": "/assets/menu/q02-m10.webp",
           "ten_mon": "Cơm gà Quảng Nam",
           "price_vnd": 52000,
           "allergens": [
@@ -389,12 +413,14 @@
     },
     {
       "restaurant_id": "Q03",
+      "image_url": "/assets/menu/q03.webp",
       "name": "Bún Phở & Cơm Đĩa Phố Cổ",
       "style": "Món nước nóng & cơm đĩa nhanh",
       "shipping_fee_vnd": 20000,
       "menu": [
         {
           "dish_id": "Q03-M11",
+          "image_url": "/assets/menu/q03-m11.webp",
           "ten_mon": "Phở bò tái bò viên",
           "price_vnd": 50000,
           "allergens": [
@@ -414,6 +440,7 @@
         },
         {
           "dish_id": "Q03-M02",
+          "image_url": "/assets/menu/q03-m02.webp",
           "ten_mon": "Bún chả Hà Nội",
           "price_vnd": 48000,
           "allergens": [],
@@ -430,6 +457,7 @@
         },
         {
           "dish_id": "Q03-M12",
+          "image_url": "/assets/menu/q03-m12.webp",
           "ten_mon": "Bún bò Huế giò nạm",
           "price_vnd": 52000,
           "allergens": [],
@@ -447,6 +475,7 @@
         },
         {
           "dish_id": "Q03-M04",
+          "image_url": "/assets/menu/q03-m04.webp",
           "ten_mon": "Bún thịt nướng đậu phộng",
           "price_vnd": 45000,
           "allergens": [
@@ -465,6 +494,7 @@
         },
         {
           "dish_id": "Q03-M13",
+          "image_url": "/assets/menu/q03-m13.webp",
           "ten_mon": "Cơm gà Hội An",
           "price_vnd": 46000,
           "allergens": [
@@ -484,6 +514,7 @@
         },
         {
           "dish_id": "Q03-M14",
+          "image_url": "/assets/menu/q03-m14.webp",
           "ten_mon": "Bún gạo xào chay rau nấm",
           "price_vnd": 40000,
           "allergens": [
@@ -499,6 +530,7 @@
         },
         {
           "dish_id": "Q03-M15",
+          "image_url": "/assets/menu/q03-m15.webp",
           "ten_mon": "Bún xào hải sản",
           "price_vnd": 58000,
           "allergens": [
@@ -517,6 +549,7 @@
         },
         {
           "dish_id": "Q03-M08",
+          "image_url": "/assets/menu/q03-m08.webp",
           "ten_mon": "Phở gà",
           "price_vnd": 49000,
           "allergens": [
@@ -536,6 +569,7 @@
         },
         {
           "dish_id": "Q03-M09",
+          "image_url": "/assets/menu/q03-m09.webp",
           "ten_mon": "Phở chay",
           "price_vnd": 45000,
           "allergens": [
@@ -552,6 +586,7 @@
         },
         {
           "dish_id": "Q03-M10",
+          "image_url": "/assets/menu/q03-m10.webp",
           "ten_mon": "Miến xào trứng",
           "price_vnd": 46000,
           "allergens": [
@@ -571,12 +606,14 @@
     },
     {
       "restaurant_id": "Q04",
+      "image_url": "/assets/menu/q04.webp",
       "name": "Bếp Chay & Eat Clean Xanh",
       "style": "Chuyên món chay và suất ăn ít béo",
       "shipping_fee_vnd": 18000,
       "menu": [
         {
           "dish_id": "Q04-M10",
+          "image_url": "/assets/menu/q04-m10.webp",
           "ten_mon": "Cơm gạo lứt ức gà vị sả",
           "price_vnd": 55000,
           "allergens": [],
@@ -593,6 +630,7 @@
         },
         {
           "dish_id": "Q04-M02",
+          "image_url": "/assets/menu/q04-m02.webp",
           "ten_mon": "Cơm tấm sườn non chay",
           "price_vnd": 42000,
           "allergens": [
@@ -608,6 +646,7 @@
         },
         {
           "dish_id": "Q04-M11",
+          "image_url": "/assets/menu/q04-m11.webp",
           "ten_mon": "Miến xào chay",
           "price_vnd": 40000,
           "allergens": [
@@ -624,6 +663,7 @@
         },
         {
           "dish_id": "Q04-M12",
+          "image_url": "/assets/menu/q04-m12.webp",
           "ten_mon": "Bún bò Huế chay",
           "price_vnd": 44000,
           "allergens": [
@@ -639,6 +679,7 @@
         },
         {
           "dish_id": "Q04-M13",
+          "image_url": "/assets/menu/q04-m13.webp",
           "ten_mon": "Miến trộn bò xốt ngũ vị",
           "price_vnd": 45000,
           "allergens": [
@@ -657,6 +698,7 @@
         },
         {
           "dish_id": "Q04-M14",
+          "image_url": "/assets/menu/q04-m14.webp",
           "ten_mon": "Cơm gạo lứt chiên nghêu",
           "price_vnd": 60000,
           "allergens": [
@@ -678,6 +720,7 @@
         },
         {
           "dish_id": "Q04-M07",
+          "image_url": "/assets/menu/q04-m07.webp",
           "ten_mon": "Cơm gạo lứt cá hồi vị sả",
           "price_vnd": 65000,
           "allergens": [
@@ -694,6 +737,7 @@
         },
         {
           "dish_id": "Q04-M08",
+          "image_url": "/assets/menu/q04-m08.webp",
           "ten_mon": "Cơm gạo lứt trộn đậu hũ",
           "price_vnd": 53000,
           "allergens": [
@@ -711,6 +755,7 @@
         },
         {
           "dish_id": "Q04-M09",
+          "image_url": "/assets/menu/q04-m09.webp",
           "ten_mon": "Cơm chiên sắc màu chay",
           "price_vnd": 46000,
           "allergens": [],
@@ -726,12 +771,14 @@
     },
     {
       "restaurant_id": "Q05",
+      "image_url": "/assets/menu/q05.webp",
       "name": "Bếp Tô Miền Trung & Nam",
       "style": "Mì Quảng, bún riêu và hủ tiếu theo tô",
       "shipping_fee_vnd": 17000,
       "menu": [
         {
           "dish_id": "Q05-M01",
+          "image_url": "/assets/menu/q05-m01.webp",
           "ten_mon": "Mì Quảng gà tôm",
           "price_vnd": 53000,
           "allergens": [
@@ -754,6 +801,7 @@
         },
         {
           "dish_id": "Q05-M02",
+          "image_url": "/assets/menu/q05-m02.webp",
           "ten_mon": "Hủ tiếu chay",
           "price_vnd": 43000,
           "allergens": [
@@ -769,6 +817,7 @@
         },
         {
           "dish_id": "Q05-M03",
+          "image_url": "/assets/menu/q05-m03.webp",
           "ten_mon": "Hủ tiếu bò kho",
           "price_vnd": 55000,
           "allergens": [],
@@ -785,6 +834,7 @@
         },
         {
           "dish_id": "Q05-M04",
+          "image_url": "/assets/menu/q05-m04.webp",
           "ten_mon": "Hủ tiếu khô tôm thịt",
           "price_vnd": 49000,
           "allergens": [
@@ -806,6 +856,7 @@
         },
         {
           "dish_id": "Q05-M05",
+          "image_url": "/assets/menu/q05-m05.webp",
           "ten_mon": "Bún riêu cua đồng",
           "price_vnd": 49000,
           "allergens": [
@@ -829,6 +880,7 @@
         },
         {
           "dish_id": "Q05-M06",
+          "image_url": "/assets/menu/q05-m06.webp",
           "ten_mon": "Mì Quảng chay đậu hũ",
           "price_vnd": 47000,
           "allergens": [
@@ -847,12 +899,14 @@
     },
     {
       "restaurant_id": "Q06",
+      "image_url": "/assets/menu/q06.webp",
       "name": "Bếp Phần Gọn",
       "style": "Xôi, cháo, bún và mì Ý theo phần",
       "shipping_fee_vnd": 19000,
       "menu": [
         {
           "dish_id": "Q06-M01",
+          "image_url": "/assets/menu/q06-m01.webp",
           "ten_mon": "Xôi gà hành phi",
           "price_vnd": 42000,
           "allergens": [
@@ -871,6 +925,7 @@
         },
         {
           "dish_id": "Q06-M02",
+          "image_url": "/assets/menu/q06-m02.webp",
           "ten_mon": "Cháo gà đậu xanh",
           "price_vnd": 43000,
           "allergens": [],
@@ -887,6 +942,7 @@
         },
         {
           "dish_id": "Q06-M03",
+          "image_url": "/assets/menu/q06-m03.webp",
           "ten_mon": "Bún chay kiểu Huế",
           "price_vnd": 45000,
           "allergens": [
@@ -902,6 +958,7 @@
         },
         {
           "dish_id": "Q06-M04",
+          "image_url": "/assets/menu/q06-m04.webp",
           "ten_mon": "Mì Ý cua sốt kem",
           "price_vnd": 65000,
           "allergens": [
@@ -920,6 +977,7 @@
         },
         {
           "dish_id": "Q06-M05",
+          "image_url": "/assets/menu/q06-m05.webp",
           "ten_mon": "Mì Ý xốt nấm và ba rọi",
           "price_vnd": 58000,
           "allergens": [
@@ -940,6 +998,7 @@
         },
         {
           "dish_id": "Q06-M06",
+          "image_url": "/assets/menu/q06-m06.webp",
           "ten_mon": "Cơm chiên trứng đơn giản",
           "price_vnd": 40000,
           "allergens": [
