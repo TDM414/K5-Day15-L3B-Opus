@@ -339,7 +339,14 @@ def build_cart(restaurant_id, members, recent_by_member=None, avoid_dishes=None)
     checked = validate_cart(restaurant_id, chosen, members)
     if not checked.get("ok"):
         return {"ok": False, "errors": checked.get("errors", ["Giỏ chưa đạt kiểm tra."]), "cart": checked}
-    return {"ok": True, "cart": checked, "options": options, "replacement_options": replacement_options, "notices": notices}
+    return {
+        "ok": True,
+        "cart": checked,
+        "options": options,
+        "replacement_options": replacement_options,
+        "notices": notices,
+        "menu": menu,
+    }
 
 
 def recommend_swap(restaurant_id, members, selections, member_name, feedback, *, allowed_dish_ids=None):

@@ -25,10 +25,21 @@ def draft_view(draft):
         "revision": draft["revision"],
         "cart": draft["cart"],
         "options": draft["options"],
+        "menu": draft["menu"],
         "selections": draft["selections"],
         "notices": draft["notices"],
         "changed_members": sorted(draft["changed"]),
         "finalized": draft["finalized"],
+    }
+
+
+def menu_item_view(dish):
+    return {
+        "id": dish["dish_id"],
+        "name": dish["ten_mon"],
+        "price": dish.get("price_vnd"),
+        "image_url": dish.get("image_url"),
+        "in_stock": dish["in_stock"],
     }
 
 
@@ -41,16 +52,15 @@ def create_draft(restaurant_id, members):
     if not result["ok"]:
         return {"error": " ".join(result["errors"])}
     draft_id = uuid.uuid4().hex
+    menu = result["menu"]
     draft = {
         "id": draft_id,
         "lock": threading.Lock(),
         "restaurant_id": result["cart"]["restaurant_id"],
         "members": members,
         "cart": result["cart"],
-        "options": [
-            [{"id": dish["dish_id"], "name": dish["ten_mon"], "price": dish["price_vnd"]} for dish in group]
-            for group in result["replacement_options"]
-        ],
+        "options": [[menu_item_view(dish) for dish in group] for group in result["replacement_options"]],
+        "menu": [menu_item_view(dish) for dish in menu["available_menu"] + menu["out_of_stock"]],
         "selections": [
             {key: item[key] for key in ("member_name", "dish_id", "is_blind_bag")}
             for item in result["cart"]["items"]
