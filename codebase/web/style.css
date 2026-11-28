@@ -118,6 +118,9 @@ textarea#draft { min-height: 160px; }
 .source-draft { margin-bottom: 12px; }
 .source-draft summary { width: fit-content; padding-block: 8px; color: var(--color-primary); font-size: .875rem; font-weight: 600; cursor: pointer; }
 .source-draft p { padding: 10px 12px; background: var(--color-bg); white-space: pre-wrap; overflow-wrap: anywhere; }
+.profile-picker ul { margin: 0; padding: 0; list-style: none; max-height: 18rem; overflow-y: auto; }
+.profile-picker li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 4px; border-bottom: 1px solid var(--color-divider); overflow-wrap: anywhere; }
+.profile-picker .text-button { flex-shrink: 0; }
 .member-list-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; margin-bottom: 8px; }
 .member { min-width: 0; border-top: 1px solid var(--color-divider); }
 .member:last-child { border-bottom: 1px solid var(--color-divider); }

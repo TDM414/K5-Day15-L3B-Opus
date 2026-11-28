@@ -15,7 +15,7 @@ const state = {
   step: 0, text: "", budget: "", parsed: "", members: [], restaurants: [], restaurant: null, draftId: null, revision: null,
   options: [], menu: [], menuOpen: false, editingMember: null, selections: [], cart: null, cartNotices: [], swap: null, changed: new Set(),
   busy: "", errors: {}, notice: "", status: "", finalized: false, copyFeedback: null, guide: true, saveProfiles: false,
-  profiles: [], history: [], savedNotice: "", preferredRestaurantId: null, confirmedMembers: "",
+  profiles: [], history: [], savedLoaded: false, savedNotice: "", preferredRestaurantId: null, confirmedMembers: "",
   swapFeedback: "", replacement: "", retry: null,
 };
 const content = document.querySelector("#step-content");
@@ -61,6 +61,7 @@ function memberFromApi(member, budget = "") {
     dishRequired: Boolean(member.dish_required),
   };
   person.blind = !person.dishRequired && (Boolean(member.blind_bag) || !memberRequirements(person).length);
+  person.explicitBlind = Boolean(member.blind_bag);
   return person;
 }
 
@@ -186,18 +187,56 @@ function renderInput() {
 }
 
 function renderSaved() {
-  return `${state.savedNotice ? `<p class="helper">${escape(state.savedNotice)} ${textButton("Tải lại", "reload-saved")}</p>` : ""}
-    ${state.profiles.length ? `<details class="source-draft"><summary>Hồ sơ đã lưu trên máy này (${state.profiles.length})</summary>
-      ${state.profiles.map((profile, index) => {
-        const details = [profile.name, profile.vegetarian ? "ăn chay" : "",
-          profile.allergies.length ? "dị ứng " + profile.allergies.join(", ") : ""].filter(Boolean).join(" · ");
-        return `<p>${escape(details)} ${textButton("Thêm người này", "profile", `data-index="${index}" aria-label="Thêm ${escape(profile.name)}"`)}</p>`;
-      }).join("")}
-    </details>` : ""}
-    ${state.history.length ? `<details class="source-draft"><summary>Lịch sử giỏ đã chốt (${state.history.length})</summary>
+  const profiles = state.profiles.map((profile, index) => {
+    const details = memberRequirements(memberFromApi(profile)).join(" · ");
+    return `<li><div><strong>${escape(profile.name)}</strong>
+      ${details ? `<div class="helper">${escape(details)}</div>` : ""}</div>
+      ${textButton("Dùng hồ sơ", "profile", `data-index="${index}" aria-label="Dùng hồ sơ của ${escape(profile.name)}"`)}</li>`;
+  }).join("");
+  return `<details class="source-draft profile-picker"><summary>Hồ sơ đã lưu${state.profiles.length ? ` (${state.profiles.length})` : ""}</summary>
+    ${state.savedNotice ? `<div role="status" class="helper">${escape(state.savedNotice)} ${textButton("Tải lại", "reload-saved")}</div>` : ""}
+    ${profiles ? `<ul>${profiles}</ul>` : !state.savedNotice ? `<div class="helper">${state.savedLoaded ? "Chưa có hồ sơ. Chọn lưu hồ sơ khi chốt giỏ để dùng cho bữa sau." : "Đang tải hồ sơ…"}</div>` : ""}
+    </details>
+    ${state.step === 0 && state.history.length ? `<details class="source-draft"><summary>Lịch sử giỏ đã chốt (${state.history.length})</summary>
       ${state.history.map(order => `<article><strong>${escape(order.restaurant_name)}</strong> · ${money(order.total_order_vnd)}<small> · ${escape(new Date(order.created_at).toLocaleString("vi-VN"))}</small><ul>${order.items.map(item => `<li>${escape(item.member_name)}: ${escape(item.dish_name)}</li>`).join("")}</ul></article>`).join("")}
     </details>` : ""}`;
 }
+
+function useProfile(profile) {
+  const saved = memberFromApi(profile, state.budget);
+  const sameName = name => name.trim().normalize("NFC").toLocaleLowerCase("vi");
+  let index = state.members.findIndex(member => sameName(member.name) === sameName(saved.name));
+  if (index >= 0) {
+    const member = state.members[index];
+    member.allergies = mergeTerms(member.allergies, saved.allergies);
+    member.avoid = mergeTerms(member.avoid, saved.avoid);
+    member.vegetarian ||= saved.vegetarian;
+    if (!member.wants.trim() && !member.explicitBlind) member.wants = saved.wants;
+    if (!member.explicitBlind && !saved.blind) member.blind = false;
+    member.budget ||= saved.budget;
+  } else {
+    index = state.members.findIndex(member => !member.name.trim() && !memberRequirements(member).length &&
+      !member.wants.trim() && !member.dishRequired);
+    if (index < 0) index = state.members.length;
+    saved.budget = state.members[index]?.budget || saved.budget;
+    state.members[index] = saved;
+  }
+  state.editingMember = index;
+  navigate(1);
+  announcement.textContent = `Đã dùng hồ sơ của ${saved.name}.`;
+  content.querySelector(`#member-${index}-${inputMoney(state.members[index].budget) ? "name" : "budget"}`).focus();
+}
+
+function mergeTerms(current, saved) {
+  const terms = new Map();
+  for (const term of [current, saved].join(",").split(/[,;]+/).map(value => value.trim()).filter(Boolean)) {
+    const key = term.normalize("NFC").toLocaleLowerCase("vi");
+    if (!terms.has(key)) terms.set(key, term);
+  }
+  return [...terms.values()].join(", ");
+}
+
+const saveProfilesChoice = () => `<label class="check-label"><input id="save-profiles" type="checkbox" ${state.saveProfiles ? "checked" : ""}> Lưu hồ sơ của nhóm trên máy này khi chốt giỏ</label>`;
 
 function memberField(index, key, label, placeholder = "") {
   const id = `member-${index}-${key}`;
@@ -275,9 +314,11 @@ function renderMembers() {
   }).join("");
   return `<form data-form="members" novalidate>
     ${state.text.trim() ? `<details class="source-draft"><summary>Xem tin nhắn gốc</summary><p>${escape(state.text)}</p></details>` : ""}
+    <div id="saved-content">${renderSaved()}</div>
     <div class="member-list-heading"><h3>Thành viên</h3><span class="helper">Ngân sách đã gồm ship</span></div>
     <div class="members">${rows}</div>
     ${textButton("+ Thêm người", "add")}
+    ${saveProfilesChoice()}
     <div class="actions">${button("Quay lại", "back")}<button class="button primary" type="submit">Xác nhận và tìm quán</button></div>
   </form>`;
 }
@@ -402,7 +443,7 @@ function renderCart() {
     <span class="status-tag success">Giỏ đã kiểm</span>
   </div>
     ${!state.finalized ? state.cartNotices.map(message => alert(message)).join("") : ""}
-    ${!state.finalized ? `<label class="check-label"><input id="save-profiles" type="checkbox" ${state.saveProfiles ? "checked" : ""}> Lưu tên và điều kiện ăn uống thành hồ sơ trên máy này</label>` : ''}
+    ${!state.finalized ? saveProfilesChoice() : ''}
     ${state.finalized ? alert("Đã chốt giỏ. Sao chép danh sách để tự đặt trên ứng dụng giao đồ ăn.", "success") : ""}
     ${rows}
     ${state.status ? alert(state.status, "success") : ""}
@@ -596,12 +637,19 @@ async function loadSaved() {
     const { members, orders } = await request("saved");
     state.profiles = members;
     state.history = orders;
+    state.savedLoaded = true;
     state.savedNotice = "";
   } catch {
     state.savedNotice = "Chưa tải được hồ sơ và lịch sử.";
   }
   const saved = content.querySelector("#saved-content");
-  if (saved) saved.innerHTML = renderSaved();
+  if (saved) {
+    const open = saved.querySelector(".profile-picker")?.open;
+    const retryFocused = document.activeElement?.dataset.action === "reload-saved";
+    saved.innerHTML = renderSaved();
+    saved.querySelector(".profile-picker").open = Boolean(open);
+    if (retryFocused) saved.querySelector(".profile-picker summary").focus();
+  }
 }
 
 async function copyCart() {
@@ -658,6 +706,7 @@ content.addEventListener("input", event => {
     const key = field.dataset.field;
     state.members[index][key] = field.type === "checkbox" ? field.checked : field.value;
     if (key === "blind" || key === "dishRequired") {
+      if (key === "blind") state.members[index].explicitBlind = field.checked;
       if (key === "blind" && !field.checked) state.editingMember = index;
       render();
       content.querySelector(`[data-member="${index}"][data-field="${key}"]`)?.focus();
@@ -701,15 +750,7 @@ content.addEventListener("click", async event => {
       break;
     case "profile": {
       const profile = state.profiles[index];
-      if (!profile) break;
-      let memberIndex = state.members.findIndex(member => normalize(member.name.trim()) === normalize(profile.name));
-      if (memberIndex === -1) {
-        memberIndex = state.members.length;
-        state.members.push(memberFromApi(profile, state.budget));
-      }
-      state.editingMember = memberIndex;
-      navigate(1);
-      content.querySelector(`#member-${memberIndex}-${inputMoney(state.members[memberIndex].budget) ? "name" : "budget"}`).focus();
+      if (profile) useProfile(profile);
       break;
     }
     case "reload-saved": await loadSaved(); break;
