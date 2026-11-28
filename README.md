@@ -79,7 +79,10 @@ Nhóm dùng stack khác (Node, Streamlit, notebook…): sửa hàm `run_app()` t
 
 | Thành phần | Thật / Giả | Ghi chú |
 |---|---|---|
-| Lời gọi AI ở quyết định trung tâm | **Thật** (bắt buộc từ CP3; hiện chế độ giả ở CP1–CP2) | Model dự kiến: `deepseek-4.1-flash` |
+| Lời gọi AI ở quyết định trung tâm | **Thật** (đã nối từ CP3) | Model: `deepseek/deepseek-v4.1-flash` qua OpenRouter (`run-1@20261128-020930`, 0 lỗi kỹ thuật) |
+| Dữ liệu quán, giá VNĐ, phí ship, tồn kho | **Mẫu** | 6 quán, 52 món trong `data/restaurants_sample.json` (v4) |
+| Công thức & thành phần món tham chiếu | **Thật** | Trích từ `data/processed/vietnamese_dishes.csv` (3.732 món Việt) |
+| Lưu lịch sử giỏ chốt | **Thật** | Lưu SQLite cục bộ tại `data/lunchie.sqlite3` (khi người đặt chọn lưu) |
 
 ## Dùng AI vào việc gì
 
