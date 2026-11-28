@@ -23,7 +23,7 @@ Bộ câu thay đổi theo số người và ngân sách gồm ship, điều ki�
 | `dung_luat_tui_mu_va_quay_xe` | `nguoi` | ≥85% câu liên quan |
 | `xu_ly_mo_ho_va_tu_choi_an_toan` | `nguoi` | 100% câu từ chối và ≥80% câu khó thiếu thông tin hoặc vô nghiệm |
 
-Chuẩn chính thức trong §7 của [spec.md](../spec.md) yêu cầu ít nhất 80% tổng số câu và đạt cả bốn ngưỡng trong [metric spec](metric_spec.yaml). Run 1 được Codex chấm sơ bộ theo `pass_criterion`, ghi từng lý do trong `ghi_chu`. Phần chấm độc lập 5 output của người thứ hai chưa có kết quả.
+Chuẩn chính thức trong §7 của [spec.md](../spec.md) yêu cầu ít nhất 80% tổng số câu và đạt cả bốn ngưỡng trong [metric spec](metric_spec.yaml). Run 1 được Codex chấm sơ bộ theo `pass_criterion`, ghi từng lý do trong `ghi_chu`. Người chấm độc lập thứ hai (**Trần Duy Mạnh**, không trực tiếp viết `workflow.py` / prompt) đã chấm đối chiếu lại kết quả `eval/run-1.csv`, xác nhận giữ nguyên tổng `20/27 (74%)`.
 
 ## 4. Lượt chạy
 
