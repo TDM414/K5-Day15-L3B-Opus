@@ -20,4 +20,8 @@ Ai nói trang nào (mỗi người ≥1 phần):
 
 | Trang | Người nói |
 |---|---|
-| | |
+| Mở đầu, 1–2: Giới thiệu Lunchie, người dùng & pain, lý do chọn bài | Trần Thị Hồng Gấm |
+| 3: Giải pháp, vai trò AI/code/người và giới hạn an toàn | Đinh Lê Thịnh |
+| 4: Demo live ca thường B01 và ca khó B10; dự phòng B14 | Nguyễn Xuân Dương |
+| 5–8: Kết quả đánh giá, chi phí, kết luận và kế hoạch tuần tiếp theo | Trần Duy Mạnh |
+
