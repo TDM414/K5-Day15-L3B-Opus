@@ -156,6 +156,7 @@ textarea#draft { min-height: 160px; }
 .cart-restaurant h3 { overflow-wrap: anywhere; }
 .cart-head { justify-content: flex-start; align-items: center; }
 .dish { font-size: 1rem; font-weight: 600; }
+.kitchen-note { margin-top: 2px; font-size: .875rem; color: var(--color-selected-text); }
 .cart-head h3 { font-size: .875rem; color: var(--color-text-muted); }
 .cart-cost { flex-direction: column; align-items: end; margin-top: 4px; color: var(--color-text-muted); font-size: .875rem; }
 .cart-cost strong { color: var(--color-text); }

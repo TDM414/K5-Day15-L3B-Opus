@@ -429,6 +429,7 @@ function renderCart() {
         <div class="cart-item-text">
           <div class="cart-head"><h3>${escape(item.member_name)}</h3>${item.is_blind_bag ? '<span class="status-tag">Túi mù</span>' : ""}</div>
           <p class="dish">${escape(item.ten_mon)}</p>
+          ${item.kitchen_note ? `<p class="kitchen-note">Ghi chú quán: ${escape(item.kitchen_note)}</p>` : ""}
         </div>
       </div>
       <div class="cart-cost"><span class="money">${money(item.price_vnd)} + ${money(item.ship_share_vnd)} ship</span><strong class="money">${money(item.total_member_vnd)}</strong></div>
@@ -655,7 +656,7 @@ async function loadSaved() {
 async function copyCart() {
   await copyText([
     `${state.finalized ? "Danh sách chốt" : "Giỏ nháp"} · ${state.cart.restaurant_name}`,
-    ...state.cart.items.map(item => `${item.member_name}: ${item.ten_mon} · ${money(item.total_member_vnd)} gồm ship`),
+    ...state.cart.items.map(item => `${item.member_name}: ${item.ten_mon}${item.kitchen_note ? ` (${item.kitchen_note})` : ""} · ${money(item.total_member_vnd)} gồm ship`),
     `Phí ship: ${money(state.cart.shipping_fee_vnd)}/đơn · ${money(state.cart.ship_per_person_vnd)}/người`,
     `Tổng đơn: ${money(state.cart.total_order_vnd)}`,
   ], "cart");
