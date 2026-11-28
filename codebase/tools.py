@@ -355,7 +355,7 @@ def suggest_restaurants(members: Optional[List[Dict[str, Any]]] = None, max_resu
                         require_exact_dishes: bool = False) -> List[Dict[str, Any]]:
     """Tên: suggest_restaurants — Lọc và gợi ý tối đa 3 quán phù hợp từ danh sách quán mẫu (Bước 3).
     Input: members (ràng buộc từng người), max_results (int, tối đa 3), require_exact_dishes (lọc theo món bắt buộc).
-    Output: danh sách tối đa 3 quán phù hợp kèm shipping_fee_vnd, ship_per_person_vnd và số món hợp lệ cho từng người.
+    Output: tối đa 3 quán phù hợp kèm khoảng giá món còn hàng, phí ship cả đơn, phần ship và số món hợp lệ từng người.
     Tác động ra ngoài: Không."""
     restaurants = _load_restaurants_data()
     members = members if isinstance(members, list) else []
@@ -371,17 +371,23 @@ def suggest_restaurants(members: Optional[List[Dict[str, Any]]] = None, max_resu
         ship_fee = int(rest.get("shipping_fee_vnd", 0))
         ship_share = math.ceil(ship_fee / n_members)
         menu = [d for d in rest.get("menu", []) if d.get("in_stock", False)]
+        prices = [dish["price_vnd"] for dish in menu
+                  if type(dish.get("price_vnd")) is int and dish["price_vnd"] >= 0]
+        candidate = {
+            "restaurant_id": rest["restaurant_id"],
+            "name": rest["name"],
+            "style": rest.get("style", ""),
+            "image_url": rest.get("image_url"),
+            "shipping_fee_vnd": ship_fee,
+            "ship_per_person_vnd": ship_share,
+            "in_stock_count": len(menu),
+            "feasible_for_all": True,
+            "price_min_vnd": min(prices, default=None),
+            "price_max_vnd": max(prices, default=None),
+        }
 
         if not members:
-            candidates.append({
-                "restaurant_id": rest["restaurant_id"],
-                "name": rest["name"],
-                "style": rest.get("style", ""),
-                "shipping_fee_vnd": ship_fee,
-                "ship_per_person_vnd": ship_share,
-                "in_stock_count": len(menu),
-                "feasible_for_all": True,
-            })
+            candidates.append(candidate)
             continue
 
         all_ok = True
@@ -405,16 +411,7 @@ def suggest_restaurants(members: Optional[List[Dict[str, Any]]] = None, max_resu
 
         if all_ok:
             preference_scores[rest["restaurant_id"]] = preference_score
-            candidates.append({
-                "restaurant_id": rest["restaurant_id"],
-                "name": rest["name"],
-                "style": rest.get("style", ""),
-                "shipping_fee_vnd": ship_fee,
-                "ship_per_person_vnd": ship_share,
-                "in_stock_count": len(menu),
-                "feasible_for_all": True,
-                "options_per_member": per_member_options,
-            })
+            candidates.append({**candidate, "options_per_member": per_member_options})
 
     candidates.sort(key=lambda candidate: preference_scores.get(candidate["restaurant_id"], 0), reverse=True)
     return candidates[:limit]
@@ -424,7 +421,7 @@ def suggest_restaurants(members: Optional[List[Dict[str, Any]]] = None, max_resu
 def get_restaurant_menu(restaurant_id: str, recent_dishes: Optional[List[str]] = None) -> Dict[str, Any]:
     """Tên: get_restaurant_menu — Lấy danh sách món còn hàng của 1 quán và đánh dấu món vừa ăn cần tránh (Bước 4).
     Input: restaurant_id (str, vd 'Q01'), recent_dishes (list tên món hoặc dish_id vừa ăn gần đây).
-    Output: dict gồm thông tin quán, shipping_fee_vnd, danh sách menu còn hàng (kèm cờ is_recent) và món đã hết hàng.
+    Output: thông tin quán, phí ship và danh sách có giá của cả món còn hàng lẫn món hết hàng.
     Tác động ra ngoài: Không."""
     restaurants = _load_restaurants_data()
     rest_key = str(restaurant_id or "").upper().strip()
@@ -447,12 +444,19 @@ def get_restaurant_menu(restaurant_id: str, recent_dishes: Optional[List[str]] =
         if dish.get("in_stock", False):
             available.append(entry)
         else:
-            out_of_stock.append({"dish_id": dish_id, "ten_mon": ten_mon})
+            out_of_stock.append({
+                "dish_id": dish_id,
+                "ten_mon": ten_mon,
+                "image_url": dish.get("image_url"),
+                "price_vnd": dish.get("price_vnd"),
+                "in_stock": False,
+            })
 
     return {
         "found": True,
         "restaurant_id": target["restaurant_id"],
         "name": target["name"],
+        "image_url": target.get("image_url"),
         "shipping_fee_vnd": target["shipping_fee_vnd"],
         "available_menu": available,
         "out_of_stock": out_of_stock,
@@ -575,6 +579,7 @@ def validate_cart(
             "member_name": m_name,
             "dish_id": dish["dish_id"],
             "ten_mon": dish["ten_mon"],
+            "image_url": dish.get("image_url"),
             "price_vnd": price,
             "ship_share_vnd": ship_share,
             "total_member_vnd": price + ship_share,
@@ -594,6 +599,7 @@ def validate_cart(
         ),
         "restaurant_id": target["restaurant_id"],
         "restaurant_name": target["name"],
+        "restaurant_image_url": target.get("image_url"),
         "shipping_fee_vnd": ship_fee,
         "ship_per_person_vnd": ship_share,
         "total_food_vnd": total_food,

@@ -2,6 +2,7 @@
 import json
 import sqlite3
 import uuid
+import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -74,20 +75,25 @@ def finalize(order_id, cart, members, save_profiles=False, menu_version=4):
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     initialize()
     with connect() as db:
+        db.execute("BEGIN IMMEDIATE")
         existing = db.execute("SELECT cart_json FROM orders WHERE order_id=?", (order_id,)).fetchone()
         if existing:
             return {"order_id": order_id, **json.loads(existing["cart_json"])}
         member_ids = {}
         if save_profiles:
+            # SQLite NOCASE only folds ASCII. Reuse the stored spelling for Vietnamese names.
+            stored_names = {unicodedata.normalize("NFC", row["name"]).casefold(): row["name"]
+                            for row in db.execute("SELECT name FROM members")}
             for m in members:
+                name = stored_names.setdefault(unicodedata.normalize("NFC", m["name"]).casefold(), m["name"])
                 member_id = m.get("member_id") or uuid.uuid4().hex
                 db.execute("""INSERT INTO members(member_id,name,allergies_json,avoid_json,vegetarian,preferred_dish,updated_at)
                   VALUES(?,?,?,?,?,?,?) ON CONFLICT(name) DO UPDATE SET allergies_json=excluded.allergies_json,
                   avoid_json=excluded.avoid_json,vegetarian=excluded.vegetarian,preferred_dish=excluded.preferred_dish,updated_at=excluded.updated_at""",
-                           (member_id, m["name"], json.dumps(m.get("allergies", []), ensure_ascii=False),
+                           (member_id, name, json.dumps(m.get("allergies", []), ensure_ascii=False),
                             json.dumps(m.get("avoid_keywords", []) + m.get("avoid_allergens", []), ensure_ascii=False),
                             int(bool(m.get("vegetarian"))), m.get("preferred_dish", ""), now))
-                row = db.execute("SELECT member_id FROM members WHERE name=? COLLATE NOCASE", (m["name"],)).fetchone()
+                row = db.execute("SELECT member_id FROM members WHERE name=? COLLATE NOCASE", (name,)).fetchone()
                 member_ids[m["name"].casefold()] = row["member_id"]
         db.execute("INSERT INTO orders VALUES(?,?,?,?,?,?,?,?,?)", (order_id, cart["restaurant_id"], cart["restaurant_name"], menu_version, now, cart["total_food_vnd"], cart["shipping_fee_vnd"], cart["total_order_vnd"], json.dumps(cart, ensure_ascii=False)))
         for item in cart["items"]:

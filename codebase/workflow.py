@@ -872,6 +872,7 @@ def build_cart(restaurant_id, members, recent_by_member=None, avoid_dishes=None,
         "options": options,
         "replacement_options": replacement_options,
         "notices": notices,
+        "menu": menu,
     }
 
 

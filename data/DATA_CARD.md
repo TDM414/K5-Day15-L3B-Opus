@@ -2,6 +2,8 @@
 
 > Menu mẫu hiện dùng phiên bản **4**. Dữ liệu công thức nằm riêng trong `data/processed/vietnamese_dishes.csv`.
 
+Ảnh WebP trong `codebase/web/assets/menu/` minh họa 6 quán và 52 món. Ảnh tạo bằng ImageGen theo từng mã quán hoặc mã món: không gian quán ăn Việt Nam có ánh sáng ấm và từng suất bày trên đĩa hoặc bát gốm. Trường `image_url` nối mỗi ảnh với một mục trong menu. Dùng dữ liệu thành phần và giá trong menu để kiểm giỏ.
+
 ## Dataset 1 · `data/restaurants_sample.json` (Danh sách quán & menu cơm trưa văn phòng D2)
 
 |  |  |

@@ -1,15 +1,21 @@
 const steps = [
   ["Nhập yêu cầu", "Dán tin nhắn nhóm để mình đọc món muốn ăn, điều kiêng và ngân sách."],
   ["Xác nhận", "Kiểm lại điều kiêng và ngân sách từng người trước khi tìm quán."],
-  ["Chọn quán", "So sánh phí ship mỗi người rồi chọn một quán cho cả nhóm."],
+  ["Chọn quán", "So sánh giá món và phí ship rồi chọn một quán cho cả nhóm."],
   ["Chốt giỏ", "Xem lại món và tổng tiền từng người, rồi chốt khi cả nhóm đã thống nhất."],
 ];
 const example = "Mai: muốn ăn cơm gà, 75k\nAn: ăn chay, không cay, 65k\nLinh: ăn gì cũng được, 70k";
+const draftPlaceholder = [
+  "Ghi tên, món muốn ăn, điều kiêng và ngân sách nếu có. Có thể dán nguyên tin nhắn nhóm.",
+  "Ví dụ:",
+  "Mai: cơm gà, 75k",
+  "An: ăn chay, 65k",
+].join("\n");
 const state = {
   step: 0, text: "", budget: "", parsed: "", members: [], restaurants: [], restaurant: null, draftId: null, revision: null,
-  options: [], selections: [], cart: null, cartNotices: [], swap: null, changed: new Set(),
-  busy: "", errors: {}, notice: "", status: "", finalized: false, fallback: "", guide: true, saveProfiles: false,
-  profiles: [], history: [], savedNotice: "", preferredRestaurantId: null, confirmedMembers: "",
+  options: [], menu: [], menuOpen: false, editingMember: null, selections: [], cart: null, cartNotices: [], swap: null, changed: new Set(),
+  busy: "", errors: {}, notice: "", status: "", finalized: false, copyFeedback: null, guide: true, saveProfiles: false,
+  profiles: [], history: [], savedLoaded: false, savedNotice: "", preferredRestaurantId: null, confirmedMembers: "",
   swapFeedback: "", replacement: "", retry: null,
 };
 const content = document.querySelector("#step-content");
@@ -19,12 +25,19 @@ const guideToggle = document.querySelector("#guide-toggle");
 const announcement = document.querySelector("#announcement");
 const currency = new Intl.NumberFormat("vi-VN");
 const money = value => currency.format(value) + "đ";
+const menuPrice = value => Number.isSafeInteger(value) ? money(value) : "Chưa có giá";
 const escape = value => String(value ?? "").replace(/[&<>"']/g, char => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
 })[char]);
+function menuPhoto(url, kind) {
+  if (typeof url !== "string" || !/^\/assets\/menu\/[a-z0-9-]+\.webp$/.test(url)) return "";
+  const restaurant = kind === "restaurant-photo" || kind === "cart-restaurant-photo";
+  return `<img class="menu-photo ${kind}" src="${escape(url)}" alt="" width="${restaurant ? 480 : 320}" height="${restaurant ? 360 : 320}" loading="lazy" decoding="async">`;
+}
+
 const normalize = value => value.toLocaleLowerCase("vi").normalize("NFD").replace(/\p{M}/gu, "").replaceAll("đ", "d");
 const emptyMember = () => ({
-  name: "", budget: "", allergies: "", avoid: "", wants: "", vegetarian: false, blind: false, dishRequired: false,
+  name: "", budget: "", allergies: "", avoid: "", wants: "", vegetarian: false, blind: true, dishRequired: false,
 });
 const inputMoney = value => {
   const compact = value.trim().toLowerCase().replace(/[.\s]/g, "");
@@ -35,8 +48,7 @@ const inputMoney = value => {
 };
 
 function memberFromApi(member, budget = "") {
-  return {
-    ...emptyMember(),
+  const person = {
     name: member.name,
     budget: member.budget_vnd ? String(member.budget_vnd) : budget,
     allergies: (member.allergies || []).join(", "),
@@ -46,9 +58,11 @@ function memberFromApi(member, budget = "") {
     ])].join(", "),
     wants: member.requested_dish || member.preferred_dish || "",
     vegetarian: Boolean(member.vegetarian),
-    blind: Boolean(member.blind_bag),
     dishRequired: Boolean(member.dish_required),
   };
+  person.blind = !person.dishRequired && (Boolean(member.blind_bag) || !memberRequirements(person).length);
+  person.explicitBlind = Boolean(member.blind_bag);
+  return person;
 }
 
 function membersForCheck() {
@@ -87,11 +101,13 @@ function resetCart() {
   state.cart = null;
   state.cartNotices = [];
   state.options = [];
+  state.menu = [];
+  state.menuOpen = false;
   state.selections = [];
   state.changed.clear();
   state.swap = null;
   state.finalized = false;
-  state.fallback = "";
+  state.copyFeedback = null;
   state.draftId = null;
   state.revision = null;
 }
@@ -100,6 +116,7 @@ function navigate(step) {
   state.step = step;
   state.notice = "";
   state.status = "";
+  state.copyFeedback = null;
   state.errors = {};
   state.swap = null;
   state.retry = null;
@@ -154,10 +171,9 @@ function renderInput() {
   return `
     <form data-form="read" novalidate>
       <div class="field">
-        <div class="field-line"><label for="draft">Tin nhắn nhóm</label>${textButton("Tải ví dụ", "example")}</div>
-        <textarea class="control" id="draft" name="text" placeholder="Mai: muốn ăn cơm gà, 75k&#10;An: ăn chay, không cay, 65k" ${error ? errorAttrs("draft", error) : 'aria-describedby="draft-hint"'} maxlength="12000">${escape(state.text)}</textarea>
+        <div class="field-line"><label for="draft">Yêu cầu của nhóm</label>${textButton("Tải ví dụ", "example")}</div>
+        <textarea class="control" id="draft" name="text" placeholder="${escape(draftPlaceholder)}" ${errorAttrs("draft", error)} maxlength="12000">${escape(state.text)}</textarea>
         ${fieldError("draft", error)}
-        <p class="helper" id="draft-hint">Ghi tên, món muốn ăn, điều kiêng và ngân sách nếu có. Có thể dán nguyên tin nhắn nhóm.</p>
       </div>
       <div class="field budget-field">
         <label for="common-budget">Ngân sách chung mỗi người</label>
@@ -171,18 +187,56 @@ function renderInput() {
 }
 
 function renderSaved() {
-  return `${state.savedNotice ? `<p class="helper">${escape(state.savedNotice)} ${textButton("Tải lại", "reload-saved")}</p>` : ""}
-    ${state.profiles.length ? `<details class="source-draft"><summary>Hồ sơ đã lưu trên máy này (${state.profiles.length})</summary>
-      ${state.profiles.map((profile, index) => {
-        const details = [profile.name, profile.vegetarian ? "ăn chay" : "",
-          profile.allergies.length ? "dị ứng " + profile.allergies.join(", ") : ""].filter(Boolean).join(" · ");
-        return `<p>${escape(details)} ${textButton("Thêm người này", "profile", `data-index="${index}" aria-label="Thêm ${escape(profile.name)}"`)}</p>`;
-      }).join("")}
-    </details>` : ""}
-    ${state.history.length ? `<details class="source-draft"><summary>Lịch sử giỏ đã chốt (${state.history.length})</summary>
+  const profiles = state.profiles.map((profile, index) => {
+    const details = memberRequirements(memberFromApi(profile)).join(" · ");
+    return `<li><div><strong>${escape(profile.name)}</strong>
+      ${details ? `<div class="helper">${escape(details)}</div>` : ""}</div>
+      ${textButton("Dùng hồ sơ", "profile", `data-index="${index}" aria-label="Dùng hồ sơ của ${escape(profile.name)}"`)}</li>`;
+  }).join("");
+  return `<details class="source-draft profile-picker"><summary>Hồ sơ đã lưu${state.profiles.length ? ` (${state.profiles.length})` : ""}</summary>
+    ${state.savedNotice ? `<div role="status" class="helper">${escape(state.savedNotice)} ${textButton("Tải lại", "reload-saved")}</div>` : ""}
+    ${profiles ? `<ul>${profiles}</ul>` : !state.savedNotice ? `<div class="helper">${state.savedLoaded ? "Chưa có hồ sơ. Chọn lưu hồ sơ khi chốt giỏ để dùng cho bữa sau." : "Đang tải hồ sơ…"}</div>` : ""}
+    </details>
+    ${state.step === 0 && state.history.length ? `<details class="source-draft"><summary>Lịch sử giỏ đã chốt (${state.history.length})</summary>
       ${state.history.map(order => `<article><strong>${escape(order.restaurant_name)}</strong> · ${money(order.total_order_vnd)}<small> · ${escape(new Date(order.created_at).toLocaleString("vi-VN"))}</small><ul>${order.items.map(item => `<li>${escape(item.member_name)}: ${escape(item.dish_name)}</li>`).join("")}</ul></article>`).join("")}
     </details>` : ""}`;
 }
+
+function useProfile(profile) {
+  const saved = memberFromApi(profile, state.budget);
+  const sameName = name => name.trim().normalize("NFC").toLocaleLowerCase("vi");
+  let index = state.members.findIndex(member => sameName(member.name) === sameName(saved.name));
+  if (index >= 0) {
+    const member = state.members[index];
+    member.allergies = mergeTerms(member.allergies, saved.allergies);
+    member.avoid = mergeTerms(member.avoid, saved.avoid);
+    member.vegetarian ||= saved.vegetarian;
+    if (!member.wants.trim() && !member.explicitBlind) member.wants = saved.wants;
+    if (!member.explicitBlind && !saved.blind) member.blind = false;
+    member.budget ||= saved.budget;
+  } else {
+    index = state.members.findIndex(member => !member.name.trim() && !memberRequirements(member).length &&
+      !member.wants.trim() && !member.dishRequired);
+    if (index < 0) index = state.members.length;
+    saved.budget = state.members[index]?.budget || saved.budget;
+    state.members[index] = saved;
+  }
+  state.editingMember = index;
+  navigate(1);
+  announcement.textContent = `Đã dùng hồ sơ của ${saved.name}.`;
+  content.querySelector(`#member-${index}-${inputMoney(state.members[index].budget) ? "name" : "budget"}`).focus();
+}
+
+function mergeTerms(current, saved) {
+  const terms = new Map();
+  for (const term of [current, saved].join(",").split(/[,;]+/).map(value => value.trim()).filter(Boolean)) {
+    const key = term.normalize("NFC").toLocaleLowerCase("vi");
+    if (!terms.has(key)) terms.set(key, term);
+  }
+  return [...terms.values()].join(", ");
+}
+
+const saveProfilesChoice = () => `<label class="check-label"><input id="save-profiles" type="checkbox" ${state.saveProfiles ? "checked" : ""}> Lưu hồ sơ của nhóm trên máy này khi chốt giỏ</label>`;
 
 function memberField(index, key, label, placeholder = "") {
   const id = `member-${index}-${key}`;
@@ -192,45 +246,109 @@ function memberField(index, key, label, placeholder = "") {
     ${fieldError(id, error)}</div>`;
 }
 
+function memberRequirements(member) {
+  const wants = member.wants.trim();
+  return [
+    member.vegetarian ? "Ăn chay" : "",
+    member.allergies.trim() ? `Dị ứng: ${member.allergies.trim()}` : "",
+    member.avoid.trim() ? `Tránh: ${member.avoid.trim()}` : "",
+    !member.blind && wants ? `${member.dishRequired ? "Chỉ chọn" : "Muốn ăn"}: ${wants}` : "",
+  ].filter(Boolean);
+}
+
+const memberDisplayName = (member, index) => member.name.trim() || `Người ${index + 1}`;
+const memberBudgetLabel = member => inputMoney(member.budget) ? money(inputMoney(member.budget)) : "Chưa có ngân sách";
+
+function updateMemberOverview(index) {
+  const member = state.members[index];
+  const prefix = `#member-${index}`;
+  content.querySelector(prefix + "-title").textContent = memberDisplayName(member, index);
+  content.querySelector(prefix + "-budget-summary").textContent = memberBudgetLabel(member);
+  const details = content.querySelector(prefix + "-requirements");
+  details.textContent = memberRequirements(member).join(" · ");
+  details.hidden = !details.textContent;
+}
+
 function renderMembers() {
-  const rows = state.members.map((member, index) => `
-    <fieldset class="member">
-      <legend>Người ${index + 1}</legend>
-      <div class="member-grid">
-        ${memberField(index, "name", "Tên")}
-        ${memberField(index, "budget", "Ngân sách gồm ship", "70.000đ")}
-        ${memberField(index, "allergies", "Dị ứng", "Ví dụ đậu phộng, tôm")}
-        ${memberField(index, "avoid", "Điều kiêng hoặc món không thích", "Ví dụ cay, thịt heo")}
-        ${memberField(index, "wants", "Món muốn ăn", "Ví dụ cơm gà")}
-      </div>
-      <div class="member-actions">
-        <div class="check-row">
-          <label class="check-label"><input type="checkbox" data-member="${index}" data-field="vegetarian" ${member.vegetarian ? "checked" : ""}> Ăn chay</label>
-          <label class="check-label"><input type="checkbox" data-member="${index}" data-field="blind" ${member.blind ? "checked" : ""}> Ăn gì cũng được</label>
-          <label class="check-label"><input type="checkbox" data-member="${index}" data-field="dishRequired" ${member.dishRequired ? "checked" : ""}> Chỉ chọn món này</label>
+  const rows = state.members.map((member, index) => {
+    const id = `member-${index}`;
+    const expanded = state.editingMember === index;
+    const details = memberRequirements(member).join(" · ");
+    const issue = ["name", "budget", "wants"].map(key => state.errors[`${id}-${key}`]).find(Boolean);
+    return `<article class="member" aria-labelledby="${id}-title">
+      <div class="member-overview">
+        <div class="member-identity">
+          <h3 id="${id}-title">${escape(memberDisplayName(member, index))}</h3>
+          <p class="helper" id="${id}-requirements" ${details ? "" : "hidden"}>${escape(details)}</p>
+          ${!expanded && issue ? `<p class="field-error">${escape(issue)}</p>` : ""}
         </div>
-        ${state.members.length > 1 ? textButton("Xóa người", "remove", `data-index="${index}" aria-label="Xóa người ${index + 1}"`) : ""}
+        <span class="member-budget money" id="${id}-budget-summary">${memberBudgetLabel(member)}</span>
+        <label class="check-label member-blind">
+          <input type="checkbox" data-member="${index}" data-field="blind" aria-describedby="${id}-title" ${member.blind ? "checked" : ""} ${member.dishRequired ? "disabled" : ""}>
+          Ăn gì cũng được
+        </label>
+        ${textButton(expanded ? "Xong" : "Sửa", "edit-member", `data-index="${index}" aria-controls="${id}-details" aria-expanded="${expanded}" aria-describedby="${id}-title"`)}
       </div>
-    </fieldset>`).join("");
+      <fieldset id="${id}-details" class="member-details" ${expanded ? "" : "hidden"}>
+        <legend class="visually-hidden">Sửa thông tin của ${escape(memberDisplayName(member, index))}</legend>
+        ${expanded ? `
+          <div class="member-grid">
+            ${memberField(index, "name", "Tên")}
+            ${memberField(index, "budget", "Ngân sách gồm ship", "70.000đ")}
+            ${member.blind ? "" : `
+              ${memberField(index, "allergies", "Dị ứng", "Ví dụ đậu phộng, tôm")}
+              ${memberField(index, "avoid", "Điều kiêng hoặc món không thích", "Ví dụ cay, thịt heo")}
+              ${memberField(index, "wants", "Món muốn ăn", "Ví dụ cơm gà")}
+            `}
+          </div>
+          <div class="member-actions">
+            ${member.blind ? "" : `<div class="check-row">
+              <label class="check-label"><input type="checkbox" data-member="${index}" data-field="vegetarian" ${member.vegetarian ? "checked" : ""}> Ăn chay</label>
+              <label class="check-label"><input type="checkbox" data-member="${index}" data-field="dishRequired" ${member.dishRequired ? "checked" : ""}> Chỉ chọn món này</label>
+            </div>`}
+            ${state.members.length > 1 ? textButton("Xóa người", "remove", `data-index="${index}" aria-describedby="${id}-title"`) : ""}
+          </div>
+        ` : ""}
+      </fieldset>
+    </article>`;
+  }).join("");
   return `<form data-form="members" novalidate>
     ${state.text.trim() ? `<details class="source-draft"><summary>Xem tin nhắn gốc</summary><p>${escape(state.text)}</p></details>` : ""}
+    <div id="saved-content">${renderSaved()}</div>
+    <div class="member-list-heading"><h3>Thành viên</h3><span class="helper">Ngân sách đã gồm ship</span></div>
     <div class="members">${rows}</div>
     ${textButton("+ Thêm người", "add")}
+    ${saveProfilesChoice()}
     <div class="actions">${button("Quay lại", "back")}<button class="button primary" type="submit">Xác nhận và tìm quán</button></div>
   </form>`;
+}
+
+function menuPriceRange(min, max) {
+  if (!Number.isSafeInteger(min) || !Number.isSafeInteger(max)) return "Chưa có giá";
+  return min === max ? money(min) : `${money(min)}–${money(max)}`;
 }
 
 function renderRestaurants() {
   const rows = state.restaurants.map(restaurant => {
     const selected = state.restaurant?.restaurant_id === restaurant.restaurant_id;
     return `<article class="restaurant ${selected ? "selected" : ""}">
-      <div class="restaurant-head"><h3>${escape(restaurant.name)}</h3><span class="money">${money(restaurant.ship_per_person_vnd)}/người</span></div>
-      <p class="helper">${escape(restaurant.style)}</p>
-      <div class="restaurant-foot"><span class="${selected ? "status-tag" : "helper"}">${selected ? "Đã chọn" : "Có món phù hợp cho từng người"}</span>
-        ${button(selected ? "Xem lại giỏ" : "Chọn quán này", "choose", "secondary", `data-id="${escape(restaurant.restaurant_id)}" aria-label="${selected ? "Xem lại giỏ" : "Chọn quán này"}: ${escape(restaurant.name)}"`)}</div>
+      ${menuPhoto(restaurant.image_url, "restaurant-photo")}
+      <div class="restaurant-content">
+        <h3>${escape(restaurant.name)}</h3>
+        <p class="helper">${escape(restaurant.style)}</p>
+        <dl class="restaurant-pricing">
+          <div><dt>Giá món còn hàng</dt><dd class="money">${menuPriceRange(restaurant.price_min_vnd, restaurant.price_max_vnd)}</dd></div>
+          <div><dt>Phí ship</dt>
+            <dd class="money">${money(restaurant.shipping_fee_vnd)}/đơn</dd>
+            <dd class="helper money">${money(restaurant.ship_per_person_vnd)}/người</dd>
+          </div>
+        </dl>
+        <div class="restaurant-foot">${selected ? '<span class="status-tag">Đã chọn</span>' : ""}
+          ${button(selected ? "Xem lại giỏ" : "Chọn quán này", "choose", "secondary", `data-id="${escape(restaurant.restaurant_id)}" aria-label="${selected ? "Xem lại giỏ" : "Chọn quán này"}: ${escape(restaurant.name)}"`)}</div>
+      </div>
     </article>`;
   }).join("");
-  return `<div class="cart-heading"><span class="status-tag">Menu mẫu</span></div>
+  return `<div class="cart-heading"><span class="status-tag">Menu mẫu</span>${rows ? '<span class="helper">Ảnh minh họa</span>' : ""}</div>
     ${rows ? `<div class="restaurant-list">${rows}</div>` : alert(
       membersForCheck().some(member => member.dish_required)
         ? "Chưa có quán đáp ứng món bắt buộc và các điều kiện của cả nhóm. Quay lại xác nhận để kiểm tra món muốn ăn, điều kiêng và ngân sách."
@@ -239,6 +357,43 @@ function renderRestaurants() {
         : "Chưa có quán nào đáp ứng đủ điều kiện và ngân sách của cả nhóm. Quay lại kiểm tra thông tin từng người."
     )}
     <div class="actions">${button("Quay lại xác nhận", "back")}</div>`;
+}
+
+function renderCopyFeedback(kind) {
+  const feedback = state.copyFeedback;
+  if (feedback?.kind !== kind) return "";
+  if (feedback.status) return alert(feedback.status, "success");
+  const label = kind === "menu" ? "Chọn và sao chép thực đơn" : "Chọn và sao chép danh sách";
+  return `<div class="field">
+    <label for="copy-fallback">${label}</label>
+    <textarea id="copy-fallback" class="control copy-fallback" readonly>${escape(feedback.fallback)}</textarea>
+  </div>`;
+}
+
+function renderVenueMenu() {
+  if (!state.menu.length) return "";
+  const rows = state.menuOpen ? state.menu.map(dish => `<li class="menu-dish">
+      ${menuPhoto(dish.image_url, "menu-dish-photo")}
+      <div class="menu-dish-info">
+        <p class="menu-dish-name">${escape(dish.name)}</p>
+        ${dish.in_stock ? "" : '<span class="helper">Hết hàng</span>'}
+      </div>
+      <span class="money">${menuPrice(dish.price)}</span>
+    </li>`).join("") : "";
+  return `<section class="venue-menu" aria-labelledby="venue-menu-heading">
+    <div class="venue-menu-heading">
+      <h3 id="venue-menu-heading">Thực đơn quán</h3>
+      <div class="venue-menu-actions">
+        ${textButton(state.menuOpen ? "Ẩn thực đơn" : "Hiện thực đơn", "toggle-menu", `aria-expanded="${state.menuOpen}" aria-controls="venue-menu-content"`)}
+        ${button("Sao chép thực đơn", "copy-menu", "secondary")}
+      </div>
+    </div>
+    ${renderCopyFeedback("menu")}
+    <div id="venue-menu-content" ${state.menuOpen ? "" : "hidden"}>
+      <p class="helper">Giá món chưa gồm phí ship.</p>
+      <ul class="venue-menu-list">${rows}</ul>
+    </div>
+  </section>`;
 }
 
 function renderCart() {
@@ -253,6 +408,7 @@ function renderCart() {
           <select class="control" id="replacement" name="dish" required><option value="">Chọn món</option>
           ${others.map(dish => `<option value="${escape(dish.id)}" ${state.replacement === dish.id ? "selected" : ""}>${escape(dish.name)} · ${money(dish.price + item.ship_share_vnd)}</option>`).join("")}
           </select>
+          <div class="replacement-preview" data-replacement-photo>${menuPhoto(others.find(dish => dish.id === state.replacement)?.image_url, "dish-photo")}</div>
           <label class="field-label" for="swap-feedback">Hoặc nói món muốn đổi</label>
           <input class="control" id="swap-feedback" name="feedback" value="${escape(state.swapFeedback)}" maxlength="300" placeholder="Ví dụ hôm nay mình muốn ăn gà không cay" ${errorAttrs("swap-feedback", state.errors.feedback)}>
           ${fieldError("swap-feedback", state.errors.feedback)}
@@ -268,15 +424,26 @@ function renderCart() {
       }
     }
     return `<article class="cart-row">
-      <div class="cart-item"><div class="cart-head"><h3>${escape(item.member_name)}</h3>${item.is_blind_bag ? '<span class="status-tag">Túi mù</span>' : ""}</div>
-      <p class="dish">${escape(item.ten_mon)}</p></div>
+      <div class="cart-item">
+        ${menuPhoto(item.image_url, "dish-photo")}
+        <div class="cart-item-text">
+          <div class="cart-head"><h3>${escape(item.member_name)}</h3>${item.is_blind_bag ? '<span class="status-tag">Túi mù</span>' : ""}</div>
+          <p class="dish">${escape(item.ten_mon)}</p>
+        </div>
+      </div>
       <div class="cart-cost"><span class="money">${money(item.price_vnd)} + ${money(item.ship_share_vnd)} ship</span><strong class="money">${money(item.total_member_vnd)}</strong></div>
       ${controls ? `<div class="cart-controls ${state.swap === index ? "expanded" : ""}">${controls}</div>` : ""}
     </article>`;
   }).join("");
-  return `<div class="cart-heading"><h3>${escape(state.cart.restaurant_name)}</h3><span class="status-tag success">Giỏ đã kiểm</span></div>
+  return `<div class="cart-heading cart-heading-with-photo">
+    <div class="cart-restaurant">
+      ${menuPhoto(state.cart.restaurant_image_url, "cart-restaurant-photo")}
+      <h3>${escape(state.cart.restaurant_name)}</h3>
+    </div>
+    <span class="status-tag success">Giỏ đã kiểm</span>
+  </div>
     ${!state.finalized ? state.cartNotices.map(message => alert(message)).join("") : ""}
-    ${!state.finalized ? `<label class="check-label"><input id="save-profiles" type="checkbox" ${state.saveProfiles ? "checked" : ""}> Lưu tên và điều kiện ăn uống thành hồ sơ trên máy này</label>` : ''}
+    ${!state.finalized ? saveProfilesChoice() : ''}
     ${state.finalized ? alert("Đã chốt giỏ. Sao chép danh sách để tự đặt trên ứng dụng giao đồ ăn.", "success") : ""}
     ${rows}
     ${state.status ? alert(state.status, "success") : ""}
@@ -285,7 +452,8 @@ function renderCart() {
       ${button(state.finalized ? "Sao chép danh sách" : "Sao chép tin nhắn nháp", "copy")}
       ${state.finalized ? "" : button("Chốt giỏ", "finalize", "primary")}
     </div>
-    ${state.fallback ? `<div class="field"><label for="copy-fallback">Chọn và sao chép danh sách</label><textarea id="copy-fallback" class="control copy-fallback" readonly>${escape(state.fallback)}</textarea></div>` : ""}`;
+    ${renderCopyFeedback("cart")}
+    ${renderVenueMenu()}`;
 }
 
 function renderSummary() {
@@ -333,6 +501,11 @@ function memberErrors() {
   return errors;
 }
 
+function openFirstMemberError() {
+  const first = Object.keys(state.errors)[0];
+  state.editingMember = first ? Number(first.split("-")[1]) : null;
+}
+
 async function readInput() {
   state.errors = {};
   if (!state.text.trim()) state.errors.text = "Dán tin nhắn nhóm hoặc chọn Nhập thủ công.";
@@ -363,6 +536,7 @@ async function readInput() {
     resetCart();
     navigate(1);
     state.errors = memberErrors();
+    openFirstMemberError();
     if (parsed.intent === "clarify" && !Object.keys(state.errors).length) {
       state.notice = parsed.reason || "Kiểm lại món muốn ăn, điều kiêng và ngân sách trước khi tìm quán.";
     }
@@ -372,6 +546,7 @@ async function readInput() {
 async function findRestaurants() {
   state.errors = memberErrors();
   if (Object.keys(state.errors).length) {
+    openFirstMemberError();
     render();
     content.querySelector("[aria-invalid]")?.focus();
     return;
@@ -393,15 +568,17 @@ async function findRestaurants() {
 }
 
 function applyDraft(draft) {
+  if (state.draftId !== draft.draft_id) state.menuOpen = false;
   state.cart = draft.cart;
   state.options = draft.options;
+  state.menu = draft.menu || [];
   state.selections = draft.selections;
   state.draftId = draft.draft_id;
   state.revision = draft.revision;
   state.changed = new Set(draft.changed_members);
   state.cartNotices = draft.notices;
   state.finalized = draft.finalized;
-  state.fallback = "";
+  state.copyFeedback = null;
   state.swap = null;
 }
 
@@ -460,29 +637,48 @@ async function loadSaved() {
     const { members, orders } = await request("saved");
     state.profiles = members;
     state.history = orders;
+    state.savedLoaded = true;
     state.savedNotice = "";
   } catch {
     state.savedNotice = "Chưa tải được hồ sơ và lịch sử.";
   }
   const saved = content.querySelector("#saved-content");
-  if (saved) saved.innerHTML = renderSaved();
+  if (saved) {
+    const open = saved.querySelector(".profile-picker")?.open;
+    const retryFocused = document.activeElement?.dataset.action === "reload-saved";
+    saved.innerHTML = renderSaved();
+    saved.querySelector(".profile-picker").open = Boolean(open);
+    if (retryFocused) saved.querySelector(".profile-picker summary").focus();
+  }
 }
 
 async function copyCart() {
-  const lines = [
+  await copyText([
     `${state.finalized ? "Danh sách chốt" : "Giỏ nháp"} · ${state.cart.restaurant_name}`,
     ...state.cart.items.map(item => `${item.member_name}: ${item.ten_mon} · ${money(item.total_member_vnd)} gồm ship`),
+    `Phí ship: ${money(state.cart.shipping_fee_vnd)}/đơn · ${money(state.cart.ship_per_person_vnd)}/người`,
     `Tổng đơn: ${money(state.cart.total_order_vnd)}`,
-  ];
+  ], "cart");
+}
+
+async function copyVenueMenu() {
+  if (!state.menu.length) return;
+  await copyText([
+    `Thực đơn · ${state.cart.restaurant_name}`,
+    "Giá món chưa gồm phí ship.",
+    ...state.menu.map(dish => `- ${dish.name} · ${menuPrice(dish.price)}${dish.in_stock ? "" : " (Hết hàng)"}`),
+  ], "menu");
+}
+
+async function copyText(lines, kind) {
   const text = lines.join("\n");
   try {
     await navigator.clipboard.writeText(text);
-    state.status = "Đã sao chép danh sách.";
-    state.fallback = "";
+    state.copyFeedback = { kind, status: kind === "menu" ? "Đã sao chép thực đơn." : "Đã sao chép danh sách." };
     render();
-    content.querySelector('[data-action="copy"]')?.focus();
+    content.querySelector(kind === "menu" ? '[data-action="copy-menu"]' : '[data-action="copy"]')?.focus();
   } catch {
-    state.fallback = text;
+    state.copyFeedback = { kind, fallback: text };
     render();
     const field = content.querySelector("#copy-fallback");
     field.focus();
@@ -497,19 +693,36 @@ guideToggle.addEventListener("click", () => {
   guideToggle.textContent = state.guide ? "Ẩn hướng dẫn" : "Hiện hướng dẫn";
 });
 
+content.addEventListener("error", event => {
+  if (event.target.matches("img.menu-photo")) event.target.hidden = true;
+}, true);
+
 content.addEventListener("input", event => {
   const field = event.target;
   if (field.id === "save-profiles") {
     state.saveProfiles = field.checked;
   } else if (field.dataset.member !== undefined) {
-    state.members[Number(field.dataset.member)][field.dataset.field] = field.type === "checkbox" ? field.checked : field.value;
-    renderSummary();
+    const index = Number(field.dataset.member);
+    const key = field.dataset.field;
+    state.members[index][key] = field.type === "checkbox" ? field.checked : field.value;
+    if (key === "blind" || key === "dishRequired") {
+      if (key === "blind") state.members[index].explicitBlind = field.checked;
+      if (key === "blind" && !field.checked) state.editingMember = index;
+      render();
+      content.querySelector(`[data-member="${index}"][data-field="${key}"]`)?.focus();
+    } else {
+      updateMemberOverview(index);
+      renderSummary();
+    }
   } else if (field.name === "text" || field.name === "budget") {
     state[field.name] = field.value;
   } else if (field.name === "feedback") {
     state.swapFeedback = field.value;
   } else if (field.name === "dish") {
     state.replacement = field.value;
+    const options = state.options[Number(field.form.dataset.index)] || [];
+    const dish = options.find(option => option.id === field.value);
+    field.form.querySelector("[data-replacement-photo]").innerHTML = menuPhoto(dish?.image_url, "dish-photo");
   }
 });
 
@@ -537,20 +750,14 @@ content.addEventListener("click", async event => {
       break;
     case "profile": {
       const profile = state.profiles[index];
-      if (!profile) break;
-      let memberIndex = state.members.findIndex(member => normalize(member.name.trim()) === normalize(profile.name));
-      if (memberIndex === -1) {
-        memberIndex = state.members.length;
-        state.members.push(memberFromApi(profile, state.budget));
-      }
-      navigate(1);
-      content.querySelector(`#member-${memberIndex}-${inputMoney(state.members[memberIndex].budget) ? "name" : "budget"}`).focus();
+      if (profile) useProfile(profile);
       break;
     }
     case "reload-saved": await loadSaved(); break;
     case "retry": await state.retry?.(); break;
     case "manual":
       if (!state.members.length) state.members.push({ ...emptyMember(), budget: state.budget });
+      state.editingMember ??= 0;
       navigate(1);
       break;
     case "back":
@@ -558,14 +765,21 @@ content.addEventListener("click", async event => {
       break;
     case "add":
       state.members.push({ ...emptyMember(), budget: state.budget });
+      state.editingMember = state.members.length - 1;
       render();
-      content.querySelector(`#member-${state.members.length - 1}-name`).focus();
+      content.querySelector(`#member-${state.editingMember}-name`).focus();
+      break;
+    case "edit-member":
+      state.editingMember = state.editingMember === index ? null : index;
+      render();
+      content.querySelector(`[data-action="edit-member"][data-index="${index}"]`)?.focus();
       break;
     case "remove":
       state.members.splice(index, 1);
+      state.editingMember = null;
       state.errors = {};
       render();
-      content.querySelector(`#member-${Math.min(index, state.members.length - 1)}-name`).focus();
+      content.querySelector(`[data-action="edit-member"][data-index="${Math.min(index, state.members.length - 1)}"]`)?.focus();
       break;
     case "choose": await chooseRestaurant(target.dataset.id); break;
     case "swap":
@@ -589,6 +803,12 @@ content.addEventListener("click", async event => {
       break;
     }
     case "copy": await copyCart(); break;
+    case "copy-menu": await copyVenueMenu(); break;
+    case "toggle-menu":
+      state.menuOpen = !state.menuOpen;
+      render();
+      content.querySelector('[data-action="toggle-menu"]')?.focus();
+      break;
     case "finalize": await finalizeCart(); break;
     case "restart":
       resetCart();
@@ -596,6 +816,7 @@ content.addEventListener("click", async event => {
       state.budget = "";
       state.parsed = "";
       state.members = [];
+      state.editingMember = null;
       state.restaurants = [];
       state.confirmedMembers = "";
       state.preferredRestaurantId = null;
