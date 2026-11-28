@@ -13,6 +13,7 @@ README của nhóm có mục "Dùng AI vào việc gì" (2–3 dòng, bắt bu�
 | Viết câu thử (benchmark) | Antigravity, Codex | Đề xuất cấu trúc B01–B15 và mở rộng ca kiểm thử B16–B27 | Đối chiếu giá/mã món với `restaurants_sample.json` v4; gắn nguồn `data_that` (9/27) và `tu_viet` (18/27) | Đinh Lê Thịnh, Trần Duy Mạnh |
 | Sinh data `synthetic` (nếu có) | Không dùng | Không sinh người dùng/khảo sát giả (`restaurants_sample.json` là menu mẫu thiết kế có kiểm soát) | Đối chiếu 52 mã `VN-…` từ `vietnamese_dishes.csv` | Trần Duy Mạnh, Đinh Lê Thịnh |
 | Chấm cột `pass` bằng LLM (nếu có) | Codex | Chấm sơ bộ 27 câu trong `eval/run-1.csv` theo `pass_criterion` | **Trần Duy Mạnh** (người chấm độc lập ngoài phần `workflow.py`/prompt) chấm đối chiếu lại `eval/run-1.csv`, xác nhận kết quả `20/27` | Trần Duy Mạnh |
+| Rà soát lỗi, vá code P0 và chấm sơ bộ `run-6` | Claude Code | Rà toàn repo, viết 53 câu kiểm diễn đạt khác bộ câu thử, vá `workflow.py`/`tools.py` kèm test `tests/test_fix_*.py`, chấm sơ bộ `eval/run-6.csv` | Người trong nhóm đối chiếu cột `pass` của `eval/run-6.csv` | Trần Duy Mạnh |
 | Slide, văn bản | Antigravity | Rà soát `spec.md`, `canvas.md`, `README.md`, `docs/PIPELINE.md` | Kiểm chứng số liệu thật và đối chiếu chuẩn rubric | Trần Thị Hồng Gấm, Trần Duy Mạnh |
 
 **Không dùng AI để:** tạo người được phỏng vấn, trích dẫn, câu trả lời khảo sát; sửa kết quả các lượt đã chạy (`eval/run-*.csv`, `cost/simulate-*.csv`, `traces/`).

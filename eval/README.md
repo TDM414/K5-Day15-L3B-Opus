@@ -30,6 +30,9 @@ Chuẩn chính thức trong §7 của [spec.md](../spec.md) yêu cầu ít nhấ
 | Lượt | Run ID | Model | Đạt / tổng | So với chuẩn |
 |---|---|---|---:|---|
 | 1 | `run-1@20261128-020930` | `deepseek/deepseek-v4.1-flash` qua OpenRouter | 20/27 (74%) | Chưa đạt |
+| 4 | `eval/run-4.csv` | `deepseek/deepseek-v4.1-flash` qua OpenRouter | 26/27 (96%) | Đạt |
+| 5 | `eval/run-5.csv` | `deepseek/deepseek-v4.1-flash` qua OpenRouter | 27/27 (100%) | Đạt (chấm sơ bộ bằng AI, trước Vòng 5) |
+| 6 | `run-6@20261128-121103` | `deepseek/deepseek-v4.1-flash` qua OpenRouter | 26/27 (96%) | Đạt (lượt trên code hiện tại) |
 | 2 | Chưa có artifact trong repo | | | |
 
 Lệnh chạy là `python run.py eval`. Điền `pass` và `ghi_chu` theo tiêu chí rồi dùng `python run.py score eval/run-1.csv`. Khi so sánh hai lượt, dùng cùng phiên bản benchmark, menu và cách chấm.

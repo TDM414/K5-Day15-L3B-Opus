@@ -20,7 +20,11 @@ Guide §3.4 quy định bộ câu chỉ được thêm sau CP2. Việc điều c
 | Lượt | Run ID | Thường | Khó | Từ chối | Tổng | Kết luận |
 |---|---|---:|---:|---:|---:|---|
 | 1 | `run-1@20261128-020930` | 9/10 | 10/12 | 1/5 | **20/27 (74%)** | Chưa đạt chuẩn 80% |
-| 2 | Chưa có artifact trong repo | — | — | — | — | — |
+| 2 | `eval/run-2.csv` | — | — | — | chưa chấm | Lượt chạy thử sau nâng cấp C1–C5, lộ 4 hồi quy (B09, B10, B16, B18) |
+| 3 | `eval/run-3.csv` | — | — | — | chưa chấm | Lượt chạy sau vá hồi quy |
+| 4 | `eval/run-4.csv` | 10/10 | 12/12 | 4/5 | **26/27 (96%)** | Đạt; trượt B13 |
+| 5 | `eval/run-5.csv` | 10/10 | 12/12 | 5/5 | **27/27 (100%)** | Đạt; chấm sơ bộ bằng AI, chạy trước thay đổi Vòng 5 |
+| 6 | `run-6@20261128-121103` | 9/10 | 12/12 | 5/5 | **26/27 (96%)** | Đạt; lượt trên code hiện tại |
 
 DeepSeek `deepseek/deepseek-v4.1-flash` qua OpenRouter chạy đủ 27 câu với 0 lỗi kỹ thuật. Mỗi câu trung bình 1,44 lần gọi model, 3,04 lần gọi công cụ, 1.480 token vào, 309 token ra và 2,68 giây. Codex chấm sơ bộ theo `pass_criterion`. Lệnh `python run.py score eval/run-1.csv` tính tổng từ cột `pass`. Hai metric định tính chờ người chấm đối chiếu. [CSV đã chấm](run-1.csv) · [Trace](../traces/run-1.jsonl)
 
@@ -39,4 +43,13 @@ DeepSeek `deepseek/deepseek-v4.1-flash` qua OpenRouter chạy đủ 27 câu vớ
 | B20 | Lập giỏ nháp Q04 cho hai người có yêu cầu chay và bò không cay. | “Lunchie chỉ hỗ trợ lập giỏ cơm trưa từ menu mẫu.” | Trả lời theo mẫu từ chối dù người dùng chỉ yêu cầu bản nháp. |
 | B23 | Chỉ chọn món ít dầu nếu menu có căn cứ rõ. | “Mình cần bạn bổ sung: tên riêng cho từng người.” | Hỏi sai thông tin cần bổ sung và chưa nêu giới hạn của menu. |
 
-Chi tiết cho đủ 27 câu nằm trong cột `pass` và `ghi_chu`. Phần so sánh lượt 1 và lượt 2 chờ lượt chạy có artifact trên cùng benchmark.
+Chi tiết cho đủ 27 câu nằm trong cột `pass` và `ghi_chu`.
+
+## 4. Lượt 6 — lượt trên code hiện tại
+
+`run-6@20261128-121103` chạy cùng menu v4, cùng 27 câu, cùng model `deepseek/deepseek-v4.1-flash`: **26/27 (96%)** — thường 9/10, khó 12/12, từ chối 5/5; 0 lỗi kỹ thuật; trung bình 1,4 lần gọi model, 1,4 lần gọi công cụ, 1.127 token vào, 355 token ra mỗi câu. [CSV đã chấm](run-6.csv) · [Trace](../traces/run-6.jsonl)
+
+- **Câu trượt B02:** tiêu chí yêu cầu gợi ý 1–3 quán, output chỉ dựng giỏ minh họa ở Q01 (giỏ tự nó đúng ràng buộc) và có dòng thông báo sai "Lan: đồ chay không có trong menu Q01".
+- **Lỗi còn thấy nhưng chưa làm trượt câu:** dòng thông báo thừa khi model ghi điều kiện vào `preferred_dish` (B04, B08, B09); tên hiển thị do model đặt ("Người Q05" ở B16).
+- **Chấm:** Claude Code chấm sơ bộ chặt theo `pass_criterion` thay người đặt; cần người trong nhóm đối chiếu. Lượt 5 (27/27) chấm nới hơn — theo cùng cách chấm của lượt 6, B02 và B22 của lượt 5 cũng có dòng thông báo sai.
+- **Giới hạn đo:** bộ 27 câu đã được dùng để chỉnh code qua nhiều lượt, nên điểm là trong mẫu. Lần vá 12:10 được kiểm thêm bằng 53 câu diễn đạt khác bộ câu thử (unit test trong `tests/test_fix_*.py`).

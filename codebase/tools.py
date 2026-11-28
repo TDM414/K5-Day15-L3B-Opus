@@ -18,6 +18,75 @@ HISTORY_PATH = os.path.join(ROOT_DIR, "data", "order_history.json")
 
 _AMBIGUOUS_ASCII_SHORT_TOKENS = {"ca", "bo", "ga"}
 
+# Tầng 3 — Rau nêm / đồ ăn kèm rắc cuối khi đóng hộp: cho phép giữ món kèm ghi chú quán
+# (trừ khi thuộc tên/định danh món ở Tầng 1 hoặc bị khai báo dị ứng ở Trục 1).
+_REMOVABLE_GARNISH_TERMS = {
+    "hanh": "không hành",
+    "hanh la": "không hành",
+    "hanh phi": "không hành phi",
+    "hanh tim": "không hành tím",
+    "hanh tay": "không hành tây",
+    "ngo": "không ngò",
+    "ngo ri": "không ngò rí",
+    "rau mui": "không rau mùi",
+    "rau ram": "không rau răm",
+    "do chua": "không đồ chua",
+    "dua leo": "không dưa leo",
+    "ot lat": "không ớt lát",
+    "ot cat lat": "không ớt lát",
+    "ot tuoi": "không ớt tươi",
+    "tieu": "không tiêu",
+}
+
+# Tầng 1 — Nhóm nguyên liệu đạm/cốt lõi định danh món, không thể "note bếp bỏ riêng".
+_CORE_IDENTITY_TAG_MAP = {
+    "gà": {"gia_cam"},
+    "ga": {"gia_cam"},
+    "thịt gà": {"gia_cam"},
+    "vịt": {"gia_cam"},
+    "bò": {"thit_bo"},
+    "bo": {"thit_bo"},
+    "thịt bò": {"thit_bo"},
+    "heo": {"thit_heo"},
+    "lợn": {"thit_heo"},
+    "thịt heo": {"thit_heo"},
+    "sườn": {"thit_heo"},
+    "ba rọi": {"thit_heo"},
+    "ba chỉ": {"thit_heo"},
+    "cá": {"ca"},
+    "ca": {"ca"},
+    "hải sản": {"hai_san"},
+    "tôm": {"hai_san"},
+    "mực": {"hai_san"},
+    "cua": {"hai_san"},
+    "trứng": {"trung"},
+}
+
+
+# Đồng nghĩa dị ứng (Trục 1): mở rộng theo slug để so với allergens/ingredient_tags
+# và theo cụm có dấu để so với văn bản thành phần.
+_ALLERGY_SYNONYMS = {
+    "lac": ["đậu phộng"],
+    "dau_phong": ["lạc"],
+    "hai_san": ["tôm", "cua", "mực", "nghêu", "sò", "cá"],
+    "sua": ["bơ sữa"],
+    "bo_sua": ["sữa"],
+}
+
+# Tag thuộc tính (độ cay, chay/mặn) không phải "thành phần chính/định danh" của món.
+_ATTRIBUTE_TAGS = {"cay", "chay", "man"}
+
+
+def _expand_allergy_terms(terms: List[str]) -> List[str]:
+    expanded: List[str] = []
+    for term in terms:
+        cleaned = str(term or "").strip()
+        if not cleaned:
+            continue
+        expanded.append(cleaned)
+        expanded.extend(_ALLERGY_SYNONYMS.get(_to_slug(cleaned), []))
+    return list(dict.fromkeys(expanded))
+
 
 def _strip_accents(text: str) -> str:
     text = text.replace("đ", "d").replace("Đ", "D")
@@ -74,6 +143,109 @@ def _menu_match(dishes, requested):
     return None
 
 
+def _dish_restriction_tags(dish: Dict[str, Any]) -> set:
+    tags = {
+        _to_slug(tag)
+        for field in ("allergens", "ingredient_tags", "dietary_tags")
+        for tag in _as_list(dish.get(field))
+        if _to_slug(tag)
+    }
+    if dish.get("is_spicy"):
+        tags.add("cay")
+    tags.add("chay" if dish.get("is_vegetarian") else "man")
+    return tags
+
+
+def _normalize_term(term: str):
+    term_lower = re.sub(r"\s+", " ", term.lower().replace("_", " ")).strip()
+    term_ascii = _strip_accents(term_lower)
+    return term_lower, term_ascii, term_lower != term_ascii
+
+
+def _is_core_dish_component(
+    dish: Dict[str, Any],
+    term_lower: str,
+    term_ascii: str,
+    has_diacritics: bool,
+    restriction_tags: set,
+) -> bool:
+    if _to_slug(term_lower) in _ATTRIBUTE_TAGS:
+        return False
+    title_orig = str(dish.get("ten_mon", "")).lower()
+    title_ascii = _strip_accents(title_orig)
+    cat_orig = str(dish.get("dish_category", "")).lower()
+    cat_ascii = _strip_accents(cat_orig)
+
+    if _contains_whole_phrase(title_orig, term_lower) or _contains_whole_phrase(cat_orig, term_lower):
+        return True
+    if not has_diacritics and term_ascii not in _AMBIGUOUS_ASCII_SHORT_TOKENS:
+        if _contains_whole_phrase(title_ascii, term_ascii) or _contains_whole_phrase(cat_ascii, term_ascii):
+            return True
+
+    mapped = _CORE_IDENTITY_TAG_MAP.get(term_lower) or (
+        _CORE_IDENTITY_TAG_MAP.get(term_ascii) if not has_diacritics else None
+    )
+    if mapped and (mapped & restriction_tags):
+        return True
+
+    term_slug = _to_slug(term_lower)
+    if term_slug and term_ascii not in _REMOVABLE_GARNISH_TERMS and term_slug in restriction_tags:
+        return True
+    return False
+
+
+def _dish_garnish_notes(dish: Dict[str, Any], member: Dict[str, Any]) -> List[str]:
+    if not isinstance(dish, dict) or not isinstance(member, dict):
+        return []
+    allergy_terms = {
+        _to_slug(a)
+        for a in _expand_allergy_terms(_as_list(member.get("allergies")) + _as_list(member.get("avoid_allergens")))
+    }
+    restriction_tags = _dish_restriction_tags(dish)
+    notes: List[str] = []
+    for raw in _as_list(member.get("avoid_keywords")):
+        cleaned = raw.strip()
+        if not cleaned:
+            continue
+        term_lower, term_ascii, has_diacritics = _normalize_term(cleaned)
+        term_slug = _to_slug(cleaned)
+        if term_slug in allergy_terms or any(
+            a and (term_slug.startswith(a + "_") or a.startswith(term_slug + "_")) for a in allergy_terms
+        ):
+            continue
+        label = _REMOVABLE_GARNISH_TERMS.get(term_ascii)
+        if not label:
+            continue
+        if _is_core_dish_component(dish, term_lower, term_ascii, has_diacritics, restriction_tags):
+            continue
+        if label not in notes:
+            notes.append(label)
+    return notes
+
+
+def _dish_has_garnish_in_recipe(dish: Dict[str, Any], member: Dict[str, Any]) -> bool:
+    if not isinstance(dish, dict) or not isinstance(member, dict):
+        return False
+    ingredient_text = dish.get("ingredients") if dish.get("ingredient_status") != "legacy_partial" else None
+    text_orig = " ".join([str(dish.get("ten_mon", "")), *_as_list(ingredient_text)]).lower()
+    text_ascii = _strip_accents(text_orig)
+    restriction_tags = _dish_restriction_tags(dish)
+    for raw in _as_list(member.get("avoid_keywords")):
+        cleaned = raw.strip()
+        if not cleaned:
+            continue
+        term_lower, term_ascii, has_diacritics = _normalize_term(cleaned)
+        if term_ascii not in _REMOVABLE_GARNISH_TERMS:
+            continue
+        if _to_slug(cleaned) in restriction_tags:
+            return True
+        if _contains_whole_phrase(_strip_negated_phrase(text_orig, term_lower), term_lower):
+            return True
+        if not has_diacritics and _contains_whole_phrase(_strip_negated_phrase(text_ascii, term_ascii), term_ascii):
+            return True
+    return False
+
+
 def _dish_satisfies_member(
     dish: Dict[str, Any],
     member: Dict[str, Any],
@@ -85,6 +257,9 @@ def _dish_satisfies_member(
     if not isinstance(member, dict):
         return "Thông tin ràng buộc thành viên không hợp lệ"
 
+    if member.get("vegetarian") and member.get("require_non_vegetarian"):
+        return "Yêu cầu tự mâu thuẫn giữa ăn chay và món mặn"
+
     dish_name = dish.get("ten_mon") or dish.get("dish_id") or "Không rõ tên"
     if not dish.get("in_stock", False):
         return f"Món '{dish_name}' hiện đang hết hàng"
@@ -94,18 +269,10 @@ def _dish_satisfies_member(
     if member.get("require_non_vegetarian") and dish.get("is_vegetarian", False):
         return f"Món '{dish_name}' không đáp ứng yêu cầu món mặn"
 
-    restriction_tags = {
-        _to_slug(tag)
-        for field in ("allergens", "ingredient_tags", "dietary_tags")
-        for tag in _as_list(dish.get(field))
-        if _to_slug(tag)
-    }
-    if dish.get("is_spicy"):
-        restriction_tags.add("cay")
-    restriction_tags.add("chay" if dish.get("is_vegetarian") else "man")
+    restriction_tags = _dish_restriction_tags(dish)
 
     allergies = _as_list(member.get("allergies"))
-    raw_allergens = _as_list(member.get("avoid_allergens")) + allergies
+    raw_allergens = _expand_allergy_terms(_as_list(member.get("avoid_allergens")) + allergies)
     avoid_allergen_slugs = {_to_slug(a) for a in raw_allergens if _to_slug(a)}
     overlap = sorted(avoid_allergen_slugs & restriction_tags)
     if overlap:
@@ -115,36 +282,44 @@ def _dish_satisfies_member(
     text_orig = " ".join([str(dish.get("ten_mon", "")), *_as_list(ingredient_text)]).lower()
     text_ascii = _strip_accents(text_orig)
 
-    # Kiểm tra cả avoid_allergens và avoid_keywords theo từ khóa tránh (loại trừ cụm phủ định 'không <từ khóa>')
-    combined_terms: List[str] = []
-    for item in raw_allergens + _as_list(member.get("avoid_keywords")):
-        cleaned = item.strip()
-        if cleaned:
-            combined_terms.append(cleaned)
-
-    for term in combined_terms:
-        term_slug = _to_slug(term)
+    # Trục 1 (Cứng): Kiểm tra dị ứng / tránh tuyệt đối, không hạ xuống ghi chú bếp.
+    for raw in raw_allergens:
+        cleaned = raw.strip()
+        if not cleaned:
+            continue
+        term_lower, term_ascii, has_diacritics = _normalize_term(cleaned)
+        term_slug = _to_slug(cleaned)
         if term_slug and term_slug in restriction_tags:
-            return f"Món '{dish_name}' chứa thành phần cần tránh: '{term}'"
-        if term_slug == "cay" and "is_spicy" in dish and dish["is_spicy"] is None:
-            return f"Món '{dish_name}' chưa rõ độ cay."
-
-        term_lower = re.sub(r"\s+", " ", term.lower().replace("_", " ")).strip()
-        term_ascii = _strip_accents(term_lower)
-        has_diacritics = term_lower != term_ascii
-
-        cleaned_orig = _strip_negated_phrase(text_orig, term_lower)
-        if _contains_whole_phrase(cleaned_orig, term_lower):
-            return f"Món '{dish_name}' trùng từ khóa tránh '{term}'"
-
-        # Chỉ đối chiếu không dấu khi không phải từ đơn ngắn dễ đồng âm (vd 'cá' vs 'cà chua')
+            return f"Món '{dish_name}' chứa thành phần cần tránh: '{cleaned}'"
+        if _contains_whole_phrase(_strip_negated_phrase(text_orig, term_lower), term_lower):
+            return f"Món '{dish_name}' trùng từ khóa tránh '{cleaned}'"
         if not has_diacritics and term_ascii not in _AMBIGUOUS_ASCII_SHORT_TOKENS:
-            cleaned_ascii = _strip_negated_phrase(text_ascii, term_ascii)
-            if _contains_whole_phrase(cleaned_ascii, term_ascii):
-                return f"Món '{dish_name}' trùng từ khóa tránh '{term}'"
+            if _contains_whole_phrase(_strip_negated_phrase(text_ascii, term_ascii), term_ascii):
+                return f"Món '{dish_name}' trùng từ khóa tránh '{cleaned}'"
 
     if allergies and dish.get("ingredient_status") != "csv_listed":
         return f"Món '{dish_name}' cần xác nhận thành phần."
+
+    # Trục 2 (Khẩu vị): Tầng 1 cốt lõi chặn cứng · Tầng 3 rau nêm cho phép kèm ghi chú · Tầng 2 nấu sẵn chặn nếu có trong công thức.
+    for raw in _as_list(member.get("avoid_keywords")):
+        cleaned = raw.strip()
+        if not cleaned:
+            continue
+        term_lower, term_ascii, has_diacritics = _normalize_term(cleaned)
+        term_slug = _to_slug(cleaned)
+        if term_slug == "cay" and "is_spicy" in dish and dish["is_spicy"] is None:
+            return f"Món '{dish_name}' chưa rõ độ cay."
+        if _is_core_dish_component(dish, term_lower, term_ascii, has_diacritics, restriction_tags):
+            return f"Món '{dish_name}' có thành phần chính/định danh là '{cleaned}', không thể ghi chú bỏ riêng"
+        if term_ascii in _REMOVABLE_GARNISH_TERMS:
+            continue
+        if term_slug and term_slug in restriction_tags:
+            return f"Món '{dish_name}' chứa thành phần cần tránh: '{cleaned}'"
+        if _contains_whole_phrase(_strip_negated_phrase(text_orig, term_lower), term_lower):
+            return f"Món '{dish_name}' trùng từ khóa tránh '{cleaned}'"
+        if not has_diacritics and term_ascii not in _AMBIGUOUS_ASCII_SHORT_TOKENS:
+            if _contains_whole_phrase(_strip_negated_phrase(text_ascii, term_ascii), term_ascii):
+                return f"Món '{dish_name}' trùng từ khóa tránh '{cleaned}'"
 
     raw_price = dish.get("price_vnd")
     if raw_price is None or isinstance(raw_price, bool):
@@ -395,6 +570,7 @@ def validate_cart(
 
         price = int(dish["price_vnd"])
         total_food += price
+        kitchen_notes = _dish_garnish_notes(dish, member)
         checked_items.append({
             "member_name": m_name,
             "dish_id": dish["dish_id"],
@@ -403,6 +579,7 @@ def validate_cart(
             "ship_share_vnd": ship_share,
             "total_member_vnd": price + ship_share,
             "is_blind_bag": bool(sel.get("is_blind_bag", False)),
+            "kitchen_note": ", ".join(kitchen_notes),
         })
 
     for i, display_name, _, _ in member_entries:

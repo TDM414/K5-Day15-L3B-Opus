@@ -2,6 +2,7 @@
 import json
 import os
 import re
+import threading
 import time
 import urllib.error
 import urllib.parse
@@ -12,6 +13,8 @@ from tracing import model_call
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 GEMINI_URL_TEMPLATE = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+_PACING_LOCK = threading.Lock()
+_LAST_CALL_TS = 0.0
 
 
 def load_env(path=os.path.join(ROOT, ".env")):
@@ -38,6 +41,48 @@ class ModelError(RuntimeError):
     """Safe, user-displayable model configuration or transport error."""
 
 
+def _min_call_interval() -> float:
+    raw = (os.environ.get("MODEL_MIN_INTERVAL_S") or "").strip()
+    if not raw:
+        return 0.0
+    try:
+        return max(0.0, float(raw))
+    except ValueError:
+        return 0.0
+
+
+def _pace_request() -> None:
+    """Enforce optional minimum spacing between outbound model calls."""
+    global _LAST_CALL_TS
+    interval = _min_call_interval()
+    with _PACING_LOCK:
+        now = time.monotonic()
+        if interval > 0.0 and _LAST_CALL_TS > 0.0:
+            wait_s = (_LAST_CALL_TS + interval) - now
+            if wait_s > 0.0:
+                time.sleep(wait_s)
+                now = time.monotonic()
+        _LAST_CALL_TS = now
+
+
+def _retry_delay(exc: urllib.error.HTTPError, provider_message: str, attempt: int) -> float:
+    if exc.code in (429, 503) and getattr(exc, "headers", None):
+        retry_after = exc.headers.get("Retry-After")
+        if retry_after:
+            try:
+                seconds = float(str(retry_after).strip())
+                if seconds > 0:
+                    return min(45.0, seconds + 0.5)
+            except ValueError:
+                pass
+    if exc.code == 429:
+        retry_match = re.search(r"retry in\s+([0-9]+(?:\.[0-9]+)?)s", provider_message, re.I)
+        if retry_match:
+            return min(45.0, float(retry_match.group(1)) + 1.0)
+        return min(45.0, 8.0 * (2 ** attempt))
+    return 1.5 * (attempt + 1)
+
+
 def _post_json_with_retry(url: str, headers: dict, body: dict, provider_label: str) -> dict:
     """POST JSON with retry on transient HTTP/network failures without leaking secrets."""
     request = urllib.request.Request(
@@ -46,8 +91,10 @@ def _post_json_with_retry(url: str, headers: dict, body: dict, provider_label: s
         headers=headers,
         method="POST",
     )
+    max_attempts = 4
     last_error = None
-    for attempt in range(3):
+    for attempt in range(max_attempts):
+        _pace_request()
         try:
             with urllib.request.urlopen(request, timeout=40) as response:
                 return json.loads(response.read().decode("utf-8"))
@@ -58,7 +105,7 @@ def _post_json_with_retry(url: str, headers: dict, body: dict, provider_label: s
                 provider_message = str((error_payload.get("error") or {}).get("message") or "")[:240]
             except (ValueError, AttributeError):
                 pass
-            if exc.code not in (408, 429, 500, 502, 503, 504) or attempt == 2:
+            if exc.code not in (408, 429, 500, 502, 503, 504) or attempt == max_attempts - 1:
                 labels = {
                     400: "Yêu cầu hoặc tên model không hợp lệ",
                     401: "API key bị từ chối",
@@ -72,18 +119,15 @@ def _post_json_with_retry(url: str, headers: dict, body: dict, provider_label: s
                     f"{provider_label} lỗi HTTP {exc.code}: {labels.get(exc.code, 'request thất bại')}.{detail}"
                 ) from None
             last_error = exc
-            delay = 1.5 * (attempt + 1)
-            if exc.code == 429:
-                retry_match = re.search(r"retry in\s+([0-9]+(?:\.[0-9]+)?)s", provider_message, re.I)
-                delay = min(35.0, float(retry_match.group(1)) + 1.0) if retry_match else (10.0 * (attempt + 1))
+            delay = _retry_delay(exc, provider_message, attempt)
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
-            if attempt == 2:
+            if attempt == max_attempts - 1:
                 raise ModelError(
                     f"Không kết nối hoặc phản hồi {provider_label} không hợp lệ ({type(exc).__name__})."
                 ) from None
             last_error = exc
             delay = 1.5 * (attempt + 1)
-        if attempt < 2:
+        if attempt < max_attempts - 1:
             time.sleep(delay)
     raise ModelError(f"{provider_label} tạm thời không khả dụng ({type(last_error).__name__}).")
 
