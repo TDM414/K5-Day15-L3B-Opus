@@ -13,6 +13,10 @@ from tracing import model_call
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 GEMINI_URL_TEMPLATE = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+API_URLS = {
+    "openrouter": OPENROUTER_URL,
+    "openai": "https://api.openai.com/v1/chat/completions",
+}
 _PACING_LOCK = threading.Lock()
 _LAST_CALL_TS = 0.0
 
@@ -33,7 +37,15 @@ def load_env(path=os.path.join(ROOT, ".env")):
 load_env()
 MODEL_PROVIDER = (os.environ.get("MODEL_PROVIDER") or "fake").strip().lower()
 MODEL_NAME = (os.environ.get("MODEL_NAME") or "").strip()
-API_KEY = (os.environ.get("OPENROUTER_API_KEY") or os.environ.get("API_KEY") or "").strip()
+KEY_NAMES = {
+    "openrouter": "OPENROUTER_API_KEY",
+    "openai": "OPENAI_API_KEY",
+}
+API_KEY = (
+    os.environ.get(KEY_NAMES.get(MODEL_PROVIDER, ""))
+    or os.environ.get("API_KEY")
+    or ""
+).strip()
 GEMINI_API_KEY = (os.environ.get("GEMINI_API_KEY") or os.environ.get("API_KEY") or "").strip()
 
 
@@ -132,9 +144,10 @@ def _post_json_with_retry(url: str, headers: dict, body: dict, provider_label: s
     raise ModelError(f"{provider_label} tạm thời không khả dụng ({type(last_error).__name__}).")
 
 
-def _call_openrouter(system: str, user: str, schema=None, temperature=0.1) -> dict:
+def _call_chat_completion(system: str, user: str, provider: str, schema=None, temperature=0.1) -> dict:
+    provider_name = "OpenAI" if provider == "openai" else "OpenRouter"
     if not API_KEY:
-        raise ModelError("Thiếu OPENROUTER_API_KEY hoặc API_KEY trong môi trường/.env.")
+        raise ModelError(f"Thiếu {KEY_NAMES[provider]} hoặc API_KEY trong môi trường/.env.")
     if not MODEL_NAME:
         raise ModelError("Thiếu MODEL_NAME trong môi trường/.env.")
     body = {
@@ -142,9 +155,10 @@ def _call_openrouter(system: str, user: str, schema=None, temperature=0.1) -> di
         "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
         "temperature": temperature,
         "max_tokens": 2048,
-        "reasoning": {"enabled": False},
-        "provider": {"require_parameters": True},
     }
+    if provider == "openrouter":
+        body["reasoning"] = {"enabled": False}
+        body["provider"] = {"require_parameters": True}
     if schema:
         body["response_format"] = {
             "type": "json_schema",
@@ -153,10 +167,10 @@ def _call_openrouter(system: str, user: str, schema=None, temperature=0.1) -> di
     headers = {
         "Authorization": "Bearer " + API_KEY,
         "Content-Type": "application/json",
-        "HTTP-Referer": "http://localhost",
-        "X-Title": "Lunchie CP3",
     }
-    payload = _post_json_with_retry(OPENROUTER_URL, headers, body, "OpenRouter")
+    if provider == "openrouter":
+        headers.update({"HTTP-Referer": "http://localhost", "X-Title": "Lunchie CP3"})
+    payload = _post_json_with_retry(API_URLS[provider], headers, body, provider_name)
     choice = payload.get("choices", [{}])[0]
     content = choice.get("message", {}).get("content")
     if isinstance(content, list):
@@ -165,21 +179,30 @@ def _call_openrouter(system: str, user: str, schema=None, temperature=0.1) -> di
     if not isinstance(content, str) or not content.strip():
         message = choice.get("message") if isinstance(choice.get("message"), dict) else {}
         raise ModelError(
-            "OpenRouter trả về nội dung rỗng (finish_reason=%s, message_fields=%s, usage=%s)."
+            "%s trả về nội dung rỗng (finish_reason=%s, message_fields=%s, usage=%s)."
             % (
+                provider_name,
                 choice.get("finish_reason", "?"),
                 ",".join(sorted(message.keys())),
                 {key: usage.get(key) for key in ("prompt_tokens", "completion_tokens", "total_tokens")},
             )
         )
     if usage.get("prompt_tokens") is None or usage.get("completion_tokens") is None:
-        raise ModelError("OpenRouter không trả usage token; không thể ghi nhận chi phí chính xác.")
+        raise ModelError(f"{provider_name} không trả usage token; không thể ghi nhận chi phí chính xác.")
     return {
         "text": content,
         "model": payload.get("model") or MODEL_NAME,
         "tokens_in": int(usage["prompt_tokens"]),
         "tokens_out": int(usage["completion_tokens"]),
     }
+
+
+def _call_openrouter(system: str, user: str, schema=None, temperature=0.1) -> dict:
+    return _call_chat_completion(system, user, "openrouter", schema=schema, temperature=temperature)
+
+
+def _call_openai(system: str, user: str, schema=None, temperature=0.1) -> dict:
+    return _call_chat_completion(system, user, "openai", schema=schema, temperature=temperature)
 
 
 def _call_gemini(system: str, user: str, schema=None, temperature=0.1) -> dict:
@@ -237,6 +260,8 @@ def call_model(system: str, user: str, schema=None, temperature=0.1) -> dict:
         return {"text": "[câu trả lời giả — chưa nối model]", "model": "fake", "tokens_in": 0, "tokens_out": 0}
     if MODEL_PROVIDER == "openrouter":
         return _call_openrouter(system, user, schema=schema, temperature=temperature)
+    if MODEL_PROVIDER == "openai":
+        return _call_openai(system, user, schema=schema, temperature=temperature)
     if MODEL_PROVIDER == "gemini":
         return _call_gemini(system, user, schema=schema, temperature=temperature)
-    raise ModelError("MODEL_PROVIDER chỉ hỗ trợ gemini, openrouter hoặc fake.")
+    raise ModelError("MODEL_PROVIDER chỉ hỗ trợ gemini, openrouter, openai hoặc fake.")

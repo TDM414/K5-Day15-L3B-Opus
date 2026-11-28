@@ -39,7 +39,8 @@ Gõ `dir` (Windows) hoặc `ls` (macOS / Linux): thấy `run.py` và `README.md`
 
 - Windows: gõ `python` mà mở Microsoft Store hoặc báo không có lệnh → dùng `py`. Chưa có Python: cài từ python.org, **tick "Add python.exe to PATH"**, mở lại PowerShell.
 - macOS: báo `command not found: python` là bình thường → dùng `python3`.
-- `.env.example` có cấu hình OpenRouter mẫu. Tạo `.env`, thêm `OPENROUTER_API_KEY`; không đưa key vào Git. Hướng dẫn và lỗi: [docs/connect-model.md](docs/connect-model.md).
+- `.env.example` có cấu hình Gemini mặc định và lựa chọn OpenRouter/OpenAI. Tạo `.env`, điền API key tương ứng; không đưa key vào Git. Hướng dẫn và lỗi: [docs/connect-model.md](docs/connect-model.md).
+- Có thể dùng OpenAI trực tiếp: đặt `MODEL_PROVIDER=openai`, `MODEL_NAME=gpt-4o-mini` và `OPENAI_API_KEY` trong `.env`.
 
 Trong README này lệnh viết là `python …`; máy nhóm cần `python3` hay `py` thì gõ thay.
 
