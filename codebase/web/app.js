@@ -236,7 +236,7 @@ function mergeTerms(current, saved) {
   return [...terms.values()].join(", ");
 }
 
-const saveProfilesChoice = () => `<label class="check-label"><input id="save-profiles" type="checkbox" ${state.saveProfiles ? "checked" : ""}> Lưu hồ sơ của nhóm trên máy này khi chốt giỏ</label>`;
+const saveProfilesChoice = () => `<label class="check-label"><input id="save-profiles" type="checkbox" ${state.saveProfiles ? "checked" : ""}> Lưu hồ sơ và lịch sử giỏ của nhóm trên máy này khi chốt giỏ (không bật thì không lưu gì)</label>`;
 
 function memberField(index, key, label, placeholder = "") {
   const id = `member-${index}-${key}`;

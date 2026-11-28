@@ -620,6 +620,21 @@ class TestRegressionsAndWebContract(unittest.TestCase):
                     "save_profiles": False,
                 })
                 self.assertTrue(finalized["finalized"])
+                # Opt-out: nothing is written (no order, no per-member dish history, no profile).
+                self.assertEqual(len(storage.list_orders()), 0)
+                self.assertEqual(len(storage.list_members()), 0)
+
+                draft2 = web_preview.preview_request({"action": "options", "restaurant": "Q06", "members": members})
+                saved = web_preview.preview_request({
+                    "action": "finalize",
+                    "draft_id": draft2["draft_id"],
+                    "revision": draft2["revision"],
+                    "save_profiles": True,
+                })
+                self.assertTrue(saved["finalized"])
+                self.assertEqual(len(storage.list_orders()), 1)
+                self.assertEqual(len(storage.list_members()), 2)
+                self.assertFalse(tools.save_order_history("x1", "Q06", draft2["cart"])["saved"])
                 self.assertEqual(len(storage.list_orders()), 1)
             gc.collect()
 

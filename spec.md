@@ -71,7 +71,7 @@ flowchart TD
 | `suggest_restaurants()` | Yêu cầu ăn uống và ngân sách của từng người | Tối đa 3 quán mẫu có món phù hợp cho cả nhóm, kèm phí ship | Chỉ đọc menu |
 | `get_restaurant_menu()` | Mã quán, mã hoặc tên món vừa ăn nếu có | Món còn hàng, món hết hàng, giá và dữ liệu thành phần | Chỉ đọc menu |
 | `validate_cart()` | Mã quán, các suất đã chọn và ràng buộc của từng người | Kết quả kiểm tra, phí ship, chi tiết tiền hoặc lỗi từng suất | Chỉ đọc menu |
-| `storage.finalize()` | Mã giỏ, giỏ đã kiểm tra và lựa chọn lưu hồ sơ | Danh sách chốt và bản ghi lịch sử trong `data/lunchie.sqlite3` | Ghi SQLite cục bộ |
+| `storage.finalize()` | Mã giỏ, giỏ đã kiểm tra và lựa chọn lưu | Danh sách chốt; chỉ khi người đặt bật lưu mới ghi hồ sơ và lịch sử giỏ vào `data/lunchie.sqlite3` | Ghi SQLite cục bộ khi được bật |
 
 - **Mức tự động và chỗ người duyệt**: AI gợi ý, người đặt quyết. Người đặt xác nhận yêu cầu sau khi trích xuất ở bước 2, chọn quán ở bước 3 và duyệt giỏ ở bước 6. Sau bước 8, người đặt tự đặt và thanh toán trên ứng dụng giao đồ ăn.
 - **Chỗ chặn rủi ro**: Python lọc ứng viên trước khi gọi model, sau đó kiểm lại món thuộc đúng quán, còn hàng, đủ một suất mỗi người và đáp ứng điều kiện kiêng, dị ứng, ăn chay và ngân sách. Với mỗi người, tổng gồm giá món cộng phí ship chia đều, làm tròn lên đến đồng. Sau mỗi lần đổi và trước khi chốt, Python kiểm lại toàn bộ giỏ. Thành phần chưa đủ căn cứ để xét dị ứng cần được xác nhận với quán.
@@ -112,13 +112,13 @@ flowchart TD
 - Kết quả: lượt 1 **20/27 (74%)** *(thuong 9/10 · kho 10/12 · tu_choi 1/5 — chưa đạt chuẩn 80%)* · lượt 2 __/__ (__%) — run ID: `run-1@20261128-020930` / __ → chi tiết `eval/report.md`, hồ sơ `eval/README.md`
 
 ## §8. Chi phí khi dùng thật *(guide 4.2)*
-- Persona + giá: `cost/personas.yaml` · lượt mô phỏng: `cost/simulate-__.csv` (__ phiên)
-- Chi phí / task thành công: __ (model __) · __ (model __)
-- Chi phí / tháng ở quy mô thật: thấp __ · cơ sở __ · cao __ → chi tiết `cost/cost-estimate.md`
-- So với impact / người / tháng (§2): đáng làm không, vì sao:
+- Persona + giá: `cost/personas.yaml` · lượt mô phỏng: `cost/simulate-1.csv` (50 phiên, `simulate-1@20261128-121751`, seed 42, 0 phiên lỗi)
+- Chi phí / task thành công: **$0.00040** (model `deepseek/deepseek-v4.1-flash`) · **$0.0019** (model `gemini-2.5-flash`) · $0.0066 (`google/gemini-4-hydrogen`) — token đo trên `deepseek/deepseek-v4.1-flash`, tỉ lệ đạt 26/27 (96%) từ `run-6`
+- Chi phí / tháng ở quy mô thật (`deepseek/deepseek-v4.1-flash`): thấp **$0.085** (50 người) · cơ sở **$0.17** (100 người) · cao **$0.34** (200 người) → chi tiết `cost/cost-estimate.md`
+- So với impact / người / tháng (§2): chi phí $0.0017 / người / tháng (cơ sở) so với ~19,7 phút tiết kiệm / người / tháng *(tự ước tính)* → **đáng làm**; chi phí model không đáng kể ở mọi mức giá đã đo, rủi ro chính là độ đúng dị ứng/ngân sách nên giữ kiểm tra bằng Python.
 
 ## §9. Rủi ro & an toàn
-- Dữ liệu: đã ẩn danh gì, không thu gì, không đưa gì vào model gói miễn phí: Khảo sát (`evidence/survey/results_valid.csv`) ẩn danh hoàn toàn; bản chạy thử không thu thập họ tên đầy đủ, SĐT, địa chỉ giao hàng, tài khoản/ví thanh toán hay lịch sử giao dịch thật trên app giao đồ ăn. Không gửi toàn bộ SQLite (`data/lunchie.sqlite3`), danh sách đồng nghiệp hay khóa API lên model gói miễn phí — prompt chỉ chứa tên gọi ngắn, ngân sách và yêu cầu món trong phiên; hồ sơ thành viên chỉ lưu cục bộ khi người đặt bật tùy chọn lưu lúc chốt (`save_profiles`).
+- Dữ liệu: đã ẩn danh gì, không thu gì, không đưa gì vào model gói miễn phí: Khảo sát (`evidence/survey/results_valid.csv`) ẩn danh hoàn toàn; bản chạy thử không thu thập họ tên đầy đủ, SĐT, địa chỉ giao hàng, tài khoản/ví thanh toán hay lịch sử giao dịch thật trên app giao đồ ăn. Không gửi toàn bộ SQLite (`data/lunchie.sqlite3`), danh sách đồng nghiệp hay khóa API lên model gói miễn phí — prompt chỉ chứa tên gọi ngắn, ngân sách và yêu cầu món trong phiên; hồ sơ thành viên **và lịch sử giỏ (tên + món đã ăn)** chỉ lưu cục bộ khi người đặt bật tùy chọn lưu lúc chốt (`save_profiles`); không bật thì không ghi gì vào SQLite, và gợi ý "tránh món vừa ăn" chỉ dùng lịch sử của các lần đã bật lưu.
 - AI **không được** làm gì kể cả khi người dùng yêu cầu: (1) tự mở app, áp mã giảm giá thật, đặt đơn hoặc thanh toán hộ; (2) bỏ qua điều kiện dị ứng/kiêng hoặc gán món thiếu dữ kiện thành phần (`ingredient_status != "csv_listed"`) cho người dị ứng; (3) sửa giá món, bịa voucher hoặc bịa món/quán ngoài `restaurants_sample.json`; (4) đọc/suy đoán hồ sơ ăn uống riêng của người khác từ CSDL khi chưa được đồng ý; (5) khẳng định giả đã xác minh giá/tồn kho trực tiếp hoặc đã đặt đơn thành công; (6) đổi món lần thứ 2 cho cùng một người hoặc gộp nhiều quán vào một giỏ.
 - Ai có thể bị hại nếu AI sai, và nhóm chặn thế nào: (1) **Người ăn dị ứng/kiêng** có thể gặp phản ứng dị ứng nếu sót nguyên liệu → Python lọc cứng trước khi gọi model và kiểm lại bằng `validate_cart()`, yêu cầu đủ `csv_listed` mới cho qua và nhắc hỏi quán về nguy cơ tiếp xúc chéo; (2) **Người đặt hộ** có thể bù tiền hoặc nhầm đơn đã đặt → code tự tính `ceil(phí ship / số người)` kiểm trần từng suất, tách biệt món hết hàng/ngoài menu và luôn xuất kết quả là bản nháp chờ người đặt tự kiểm tra trên app; (3) **Đồng nghiệp** có thể lộ dữ liệu ăn uống cá nhân → từ chối truy xuất CSDL chéo người (`private_profile_access`) và tách lưu hồ sơ theo opt-in.
 
@@ -141,6 +141,8 @@ flowchart TD
 | 28/11 11:30 | Sửa `_validate_existing_draft` không coi giá món là `budget_vnd` khi câu không có từ khóa ngân sách; chạy `eval/run-4.csv` (26/27) và `eval/run-5.csv`. | Câu B13 tụt ở `run-4` (thiếu bản nháp khi từ chối đặt hộ). |
 | 28/11 11:48 | Vòng 5 (`tools.py`, `workflow.py`): ma trận dị ứng / thành phần chính / rau nêm có `Ghi chú quán`, chặn ngân sách ≤ 0đ, chặn ghép 1 hộp cho nhiều người, chặn mâu thuẫn chay–mặn; test lên 32. | Các tình huống E01–E12 trong `docs/EDGE_CASES_DO_HOI.md`. |
 | 28/11 12:10 | Vá P0 sau review độc lập: cờ chính sách không còn từ chối nhầm "đặt đơn hộ" / "tự thanh toán" / câu phủ định; nhắc ETA vẫn trả giỏ; "thêm nửa suất cơm" không bị chặn; sửa nhận diện đổi món lượt 2; báo rõ khi không quán nào khả thi; giữ Túi mù và vị ngữ chung cho nhiều tên; bắt cục bộ "dị ứng X" + từ đồng nghĩa (lạc ↔ đậu phộng), dị ứng không bao giờ thành ghi chú bếp; sửa câu lỗi món cay. 56/56 unit test, chạy `eval/run-6.csv` (`run-6@20261128-121103`) 26/27. | Lỗi phát hiện khi rà soát bằng câu diễn đạt khác bộ câu thử; `run-5` chạy trước thay đổi Vòng 5 nên cần lượt mới trên code hiện tại. |
+| 28/11 12:25 | Không bật lưu thì không ghi gì vào SQLite (trước đây vẫn ghi đơn kèm tên và món); `save_order_history` thêm tham số `save_history` mặc định tắt; nhãn checkbox web ghi rõ lưu cả lịch sử. Thêm mục so sánh lượt 1 → lượt 2 (`run-6`) vào `eval/report.md`. | Rà soát quyền riêng tư: §9 cam kết lưu theo opt-in nhưng code vẫn lưu lịch sử món theo tên. |
+| 28/11 12:30 | Chạy `python run.py simulate` 50 phiên (`simulate-1@20261128-121751`, 0 lỗi, tỉ lệ đạt từ `run-6`), điền §8 và `cost/cost-estimate.md`. | Yêu cầu CP4 mục 4.2; lượt `simulate --try` trước đó lỗi 5/10 phiên và chưa có tỉ lệ đạt cùng model. |
 
 **Sau CP4 (đến 23:59 Thứ Bảy 28/11)** (sửa theo góp ý — không sửa chuẩn "đạt", câu thử, số bằng chứng, kết quả các lượt đã chạy)
 

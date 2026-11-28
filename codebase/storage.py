@@ -68,19 +68,22 @@ def list_orders(limit=50):
 
 
 def finalize(order_id, cart, members, save_profiles=False, menu_version=4):
-    """Idempotently save a validated draft; optional profiles require explicit user opt-in."""
+    """Finalize a validated draft. Nothing is written unless the user opted in (save_profiles=True):
+    no member profile, no order, no per-member dish history."""
     if not isinstance(cart, dict) or not cart.get("ok"):
         raise ValueError("Không lưu được vì giỏ chưa qua kiểm tra.")
     order_id = str(order_id or uuid.uuid4().hex)
+    if not save_profiles:
+        return {"order_id": order_id, **cart, "saved": False}
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     initialize()
     with connect() as db:
         db.execute("BEGIN IMMEDIATE")
         existing = db.execute("SELECT cart_json FROM orders WHERE order_id=?", (order_id,)).fetchone()
         if existing:
-            return {"order_id": order_id, **json.loads(existing["cart_json"])}
+            return {"order_id": order_id, **json.loads(existing["cart_json"]), "saved": True}
         member_ids = {}
-        if save_profiles:
+        if save_profiles:  # always True here; kept explicit for readability
             # SQLite NOCASE only folds ASCII. Reuse the stored spelling for Vietnamese names.
             stored_names = {unicodedata.normalize("NFC", row["name"]).casefold(): row["name"]
                             for row in db.execute("SELECT name FROM members")}
@@ -99,7 +102,7 @@ def finalize(order_id, cart, members, save_profiles=False, menu_version=4):
         for item in cart["items"]:
             db.execute("""INSERT INTO order_items(order_id,member_id,member_name,dish_id,dish_name,price_vnd,ship_share_vnd,total_member_vnd,is_blind_bag)
                         VALUES(?,?,?,?,?,?,?,?,?)""", (order_id, member_ids.get(item["member_name"].casefold()), item["member_name"], item["dish_id"], item["ten_mon"], item["price_vnd"], item["ship_share_vnd"], item["total_member_vnd"], int(bool(item.get("is_blind_bag")))))
-    return {"order_id": order_id, **cart}
+    return {"order_id": order_id, **cart, "saved": True}
 
 
 initialize()

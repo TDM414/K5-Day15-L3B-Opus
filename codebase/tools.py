@@ -610,11 +610,13 @@ def validate_cart(
 
 
 @tool
-def save_order_history(order_id: str, restaurant_id: str, validated_cart: Dict[str, Any]) -> Dict[str, Any]:
-    """Tên: save_order_history — Lưu lịch sử đơn đã kiểm hợp lệ vào SQLite cục bộ (Bước 8).
-    Input: order_id (str), restaurant_id (str), validated_cart (dict kết quả đạt từ validate_cart).
+def save_order_history(order_id: str, restaurant_id: str, validated_cart: Dict[str, Any],
+                       save_history: bool = False) -> Dict[str, Any]:
+    """Tên: save_order_history — Lưu lịch sử đơn đã kiểm hợp lệ vào SQLite cục bộ (Bước 8), CHỈ khi người đặt bật lưu.
+    Input: order_id (str), restaurant_id (str), validated_cart (dict kết quả đạt từ validate_cart),
+           save_history (bool, mặc định False — người đặt phải chủ động bật).
     Output: dict trạng thái {'saved': bool, 'path': str, 'message': str}.
-    Tác động ra ngoài: Chỉ ghi SQLite cục bộ; KHÔNG đặt đơn, KHÔNG gửi tin hay thanh toán thật."""
+    Tác động ra ngoài: Chỉ ghi SQLite cục bộ khi save_history=True; KHÔNG đặt đơn, KHÔNG gửi tin hay thanh toán thật."""
     from storage import finalize
 
     if not isinstance(validated_cart, dict) or not validated_cart.get("ok"):
@@ -623,7 +625,13 @@ def save_order_history(order_id: str, restaurant_id: str, validated_cart: Dict[s
             "path": "data/lunchie.sqlite3",
             "message": "Không thể lưu lịch sử vì giỏ chưa vượt qua bước kiểm tra validate_cart.",
         }
-    record = finalize(str(order_id or "").strip(), validated_cart, [], save_profiles=False)
+    if save_history is not True:
+        return {
+            "saved": False,
+            "path": "data/lunchie.sqlite3",
+            "message": "Không lưu: người đặt chưa bật lưu lịch sử. Giỏ chốt chỉ hiển thị trong phiên này.",
+        }
+    record = finalize(str(order_id or "").strip(), validated_cart, [], save_profiles=True)
 
     return {
         "saved": True,

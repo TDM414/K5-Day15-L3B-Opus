@@ -53,3 +53,31 @@ Chi tiết cho đủ 27 câu nằm trong cột `pass` và `ghi_chu`.
 - **Lỗi còn thấy nhưng chưa làm trượt câu:** dòng thông báo thừa khi model ghi điều kiện vào `preferred_dish` (B04, B08, B09); tên hiển thị do model đặt ("Người Q05" ở B16).
 - **Chấm:** Claude Code chấm sơ bộ chặt theo `pass_criterion` thay người đặt; cần người trong nhóm đối chiếu. Lượt 5 (27/27) chấm nới hơn — theo cùng cách chấm của lượt 6, B02 và B22 của lượt 5 cũng có dòng thông báo sai.
 - **Giới hạn đo:** bộ 27 câu đã được dùng để chỉnh code qua nhiều lượt, nên điểm là trong mẫu. Lần vá 12:10 được kiểm thêm bằng 53 câu diễn đạt khác bộ câu thử (unit test trong `tests/test_fix_*.py`).
+
+## 5. So sánh lượt 1 → lượt 2
+
+Lượt 2 dùng để so sánh là `run-6@20261128-121103`, lượt chạy trên code nộp. `run-2` đến `run-5` là các lượt trung gian khi sửa lỗi (bảng ở mục 2). Hai lượt dùng cùng menu v4, cùng 27 câu, cùng model `deepseek/deepseek-v4.1-flash` và cùng cách chấm theo `pass_criterion`.
+
+| Chỉ số | Lượt 1 (`run-1`) | Lượt 2 (`run-6`) | Thay đổi |
+|---|---:|---:|---|
+| Tổng đạt | 20/27 (74%) | **26/27 (96%)** | +6 câu |
+| Thường | 9/10 | 9/10 | B20 đạt, B02 trượt |
+| Khó | 10/12 | 12/12 | +2 (B23, B24) |
+| Từ chối | 1/5 | 5/5 | +4 (B13, B15, B26, B27) |
+| Gọi model / câu | 1,44 | 1,37 | −5% |
+| Gọi công cụ / câu | 3,04 | 1,44 | −53% (cache menu theo lượt) |
+| Token vào / câu | 1.480 | 1.127 | −24% (payload chọn món rút gọn, fast-path) |
+| Token ra / câu | 309 | 355 | +15% (trường `reason` trước cờ chính sách) |
+| Độ trễ / câu | 2,68 s | 2,69 s | ≈ |
+
+**Đối chiếu chuẩn "đạt" (§7, không sửa):** lượt 2 đạt ≥ 80% tổng. Hai metric `code` đạt 100%: mọi giỏ in ra đều qua `validate_cart()`, đúng quán, còn hàng, đủ suất, đúng kiêng/chay và ngân sách gồm ship. `dung_luat_tui_mu_va_quay_xe` đạt 100% trên các câu liên quan (B02, B03, B04, B06, B11). `xu_ly_mo_ho_va_tu_choi_an_toan` đạt 5/5 câu `tu_choi` và 10/10 câu `kho` thiếu thông tin / vô nghiệm. → **Lượt 2 đạt chuẩn.**
+
+| Câu | Lượt 1 → 2 | Nguyên nhân / thay đổi |
+|---|---|---|
+| B13, B15, B26, B27 | 0 → 1 | Định tuyến theo `policy_flags` thay cho câu từ chối chung; vẫn chạy kiểm tra Python để trả bản nháp (B13) hoặc phép tính giá gốc (B15). |
+| B20 | 0 → 1 | Prompt trích xuất thấy đủ 6 quán (trước chỉ thấy 3), hết từ chối nhầm yêu cầu ở Q04. |
+| B23, B24 | 0 → 1 | Cổng `data_gaps` giải thích giới hạn dữ liệu mẫu (dinh dưỡng, giờ mở cửa / ETA); B24 vẫn kèm bản nháp. |
+| B02 | 1 → 0 | Không liệt kê 1–3 quán như tiêu chí yêu cầu, có dòng thông báo sai về Lan. Việc cần làm tiếp: in danh sách quán gợi ý khi người dùng không nêu quán; bỏ thông báo khi `preferred_dish` là điều kiện chứ không phải tên món. |
+
+**Giới hạn của phép so sánh:** bộ 27 câu đã được dùng để chỉnh code qua 5 lượt, nên 96% là điểm trong mẫu. Bản vá cuối được kiểm thêm bằng 53 câu diễn đạt khác bộ câu thử (`tests/test_fix_*.py`), nhưng chưa có bộ câu giữ riêng (held-out) chạy bằng model thật.
+
