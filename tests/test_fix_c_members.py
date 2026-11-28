@@ -140,3 +140,21 @@ class TestHeadcount(unittest.TestCase):
         item = view["cart"]["items"][0]
         self.assertEqual(item["ten_mon"], "Phở bò tái bò viên")
         self.assertIn("hành", item["kitchen_note"])
+
+
+class TestSideNotes(unittest.TestCase):
+    """'không ớt/tỏi/giá…': món có sẵn trong công thức thì chặn, món qua kiểm tra thì kèm ghi chú quán."""
+
+    def test_notes_for_common_side_items(self):
+        for term, label in [("ớt", "không ớt"), ("rau mùi", "không rau mùi"), ("tỏi", "không tỏi"),
+                            ("hành lá", "không hành lá"), ("giá", "không giá")]:
+            member = _m("An", 200000, avoid_keywords=[term])
+            kept = [d for r in tools._load_restaurants_data() for d in r["menu"]
+                    if d.get("in_stock") and not tools._dish_satisfies_member(d, member, 0)]
+            self.assertTrue(kept, term)
+            self.assertTrue(all(label in tools._dish_garnish_notes(d, member) for d in kept), term)
+
+    def test_dish_cooked_with_chili_still_blocked(self):
+        blocked = [d for r in tools._load_restaurants_data() for d in r["menu"]
+                   if d.get("in_stock") and tools._dish_satisfies_member(d, _m("An", 200000, avoid_keywords=["ớt"]), 0)]
+        self.assertTrue(blocked)

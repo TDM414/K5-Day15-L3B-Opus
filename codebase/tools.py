@@ -22,7 +22,7 @@ _AMBIGUOUS_ASCII_SHORT_TOKENS = {"ca", "bo", "ga"}
 # (trừ khi thuộc tên/định danh món ở Tầng 1 hoặc bị khai báo dị ứng ở Trục 1).
 _REMOVABLE_GARNISH_TERMS = {
     "hanh": "không hành",
-    "hanh la": "không hành",
+    "hanh la": "không hành lá",
     "hanh phi": "không hành phi",
     "hanh tim": "không hành tím",
     "hanh tay": "không hành tây",
@@ -36,6 +36,17 @@ _REMOVABLE_GARNISH_TERMS = {
     "ot cat lat": "không ớt lát",
     "ot tuoi": "không ớt tươi",
     "tieu": "không tiêu",
+}
+# Gia vị/đồ kèm hay được quán cho thêm lúc đóng hộp nhưng có thể đã nấu sẵn trong món:
+# món có trong công thức vẫn bị chặn (Tầng 2); món qua kiểm tra thì kèm ghi chú dặn quán.
+_SIDE_NOTE_TERMS = {
+    "ot": "không ớt",
+    "toi": "không tỏi",
+    "rau thom": "không rau thơm",
+    "rau song": "không rau sống",
+    "gia": "không giá",
+    "chanh": "không chanh",
+    "gung": "không gừng",
 }
 
 # Tầng 1 — Nhóm nguyên liệu đạm/cốt lõi định danh món, không thể "note bếp bỏ riêng".
@@ -215,6 +226,10 @@ def _dish_garnish_notes(dish: Dict[str, Any], member: Dict[str, Any]) -> List[st
             continue
         label = _REMOVABLE_GARNISH_TERMS.get(term_ascii)
         if not label:
+            side_label = _SIDE_NOTE_TERMS.get(term_ascii)
+            # Chỉ ghi chú khi món đã qua kiểm tra với chính từ khóa này (không có trong công thức).
+            if side_label and not _dish_satisfies_member(dish, {"avoid_keywords": [cleaned]}, 0) and side_label not in notes:
+                notes.append(side_label)
             continue
         if _is_core_dish_component(dish, term_lower, term_ascii, has_diacritics, restriction_tags):
             continue
