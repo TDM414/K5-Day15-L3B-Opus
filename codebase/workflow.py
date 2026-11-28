@@ -344,6 +344,46 @@ def _split_dish_and_exclusions(raw_value):
     return base, exclusions
 
 
+_NUMBER_WORDS = {"hai": 2, "ba": 3, "bon": 4, "nam": 5, "sau": 6, "bay": 7, "tam": 8, "chin": 9, "muoi": 10}
+_HEADCOUNT_RE = re.compile(r"(?<!moi )\b(\d{1,2}|" + "|".join(_NUMBER_WORDS) + r")\s+nguoi\b")
+_GENERIC_NAME_RE = re.compile(
+    r"^(?:|nguoi(?:\s*\d+)?|nguoi dat|khach(?:\s*\d+)?|\d+\s*nguoi|(?:ca |moi )?nhom|moi nguoi|thanh vien(?:\s*\d+)?)$"
+)
+
+
+def _headcount(text):
+    """Số người nêu rõ ("5 người", "năm người"); None nếu không có hoặc các số mâu thuẫn."""
+    counts = {
+        int(raw) if raw.isdigit() else _NUMBER_WORDS[raw]
+        for raw in _HEADCOUNT_RE.findall(_norm(text))
+    }
+    if len(counts) != 1:
+        return None
+    count = counts.pop()
+    return count if 2 <= count <= 20 else None
+
+
+def _expand_headcount(text, members, shared_budget):
+    """'5 người, mỗi người 50k' là 5 người ẩn danh, không phải 1 người tên '5 người'.
+    Chỉ áp dụng khi model không trả tên riêng nào; có tên riêng thì giữ nguyên, không đoán thêm người."""
+    count = _headcount(text)
+    if not count or any(not _GENERIC_NAME_RE.match(_norm(m["name"]).strip()) for m in members):
+        return members
+    if members and len(members) == count:
+        return [dict(m, name=f"Người {i}") for i, m in enumerate(members, 1)]
+    template = members[0] if members else {
+        "budget_vnd": shared_budget if type(shared_budget) is int and shared_budget > 0 else None,
+        "allergies": [], "avoid_allergens": [], "avoid_keywords": [], "vegetarian": False,
+        "preferred_dish": "", "requested_dish": "", "dish_required": False, "current_dish": "", "blind_bag": False,
+    }
+    return [
+        dict(template, name=f"Người {i}", allergies=list(template["allergies"]),
+             avoid_allergens=list(template["avoid_allergens"]), avoid_keywords=list(template["avoid_keywords"]),
+             requested_dish="", dish_required=False, current_dish="")
+        for i in range(1, count + 1)
+    ]
+
+
 def extract_request(text, shared_budget=None):
     if type(shared_budget) is not int or shared_budget <= 0:
         shared_budget = _extract_budget(text)
@@ -385,6 +425,7 @@ def extract_request(text, shared_budget=None):
                 "blind_bag": bool(member.get("blind_bag")),
             }
         )
+    clean = _expand_headcount(text, clean, shared_budget)
     _augment_member_details(str(text), clean)
     if len(clean) == 1 and not clean[0]["name"].strip():
         clean[0]["name"] = "Người đặt"

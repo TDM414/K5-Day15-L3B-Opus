@@ -97,3 +97,64 @@ class TestAttributeTags(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def _extract_with(members, text):
+    payload = dict(reason="ok", policy_flags=[], data_gaps=[], intent="plan", restaurant_id=None, members=members,
+                   swap_member=None, swap_feedback="", avoid_dishes=[], missing_fields=[])
+    reply = {"text": json.dumps(payload, ensure_ascii=False), "model": "fake", "tokens_in": 1, "tokens_out": 1}
+    with mock.patch.object(workflow, "call_model", return_value=reply):
+        return workflow.extract_request(text)
+
+
+class TestHeadcount(unittest.TestCase):
+    """'N người' là N người ẩn danh, không phải một tên riêng (T16)."""
+
+    def names(self, parsed):
+        return [m["name"] for m in parsed["members"]]
+
+    def test_single_unnamed_member_expanded(self):
+        p = _extract_with([_m("", 50000)], "Sáu người ăn trưa, mỗi người 50K")
+        self.assertEqual(self.names(p), [f"Người {i}" for i in range(1, 7)])
+        self.assertTrue(all(m["budget_vnd"] == 50000 for m in p["members"]))
+
+    def test_count_phrase_as_name_expanded(self):
+        p = _extract_with([_m("4 người", 45000, vegetarian=True)], "4 người ăn chay, mỗi người 45k")
+        self.assertEqual(len(p["members"]), 4)
+        self.assertTrue(all(m["vegetarian"] for m in p["members"]))
+
+    def test_real_names_untouched_even_if_fewer(self):
+        p = _extract_with([_m("Khánh"), _m("Ly")], "Nhóm 3 người: Khánh muốn bò, Ly ăn chay, mỗi người 60k")
+        self.assertEqual(self.names(p), ["Khánh", "Ly"])
+
+    def test_per_person_phrase_is_not_headcount(self):
+        p = _extract_with([_m("")], "Đặt cơm mỗi người 50k cho mình")
+        self.assertEqual(self.names(p), ["Người đặt"])
+
+    def test_kitchen_note_reaches_web_cart(self):
+        import web_preview
+        member = _m("Khánh", 80000, avoid_keywords=["hành lá"], requested_dish="Phở bò tái bò viên")
+        with mock.patch.object(workflow, "call_model", side_effect=AssertionError("model not needed")):
+            view = web_preview.create_draft("Q03", [member])
+        self.assertNotIn("error", view, view)
+        item = view["cart"]["items"][0]
+        self.assertEqual(item["ten_mon"], "Phở bò tái bò viên")
+        self.assertIn("hành", item["kitchen_note"])
+
+
+class TestSideNotes(unittest.TestCase):
+    """'không ớt/tỏi/giá…': món có sẵn trong công thức thì chặn, món qua kiểm tra thì kèm ghi chú quán."""
+
+    def test_notes_for_common_side_items(self):
+        for term, label in [("ớt", "không ớt"), ("rau mùi", "không rau mùi"), ("tỏi", "không tỏi"),
+                            ("hành lá", "không hành lá"), ("giá", "không giá")]:
+            member = _m("An", 200000, avoid_keywords=[term])
+            kept = [d for r in tools._load_restaurants_data() for d in r["menu"]
+                    if d.get("in_stock") and not tools._dish_satisfies_member(d, member, 0)]
+            self.assertTrue(kept, term)
+            self.assertTrue(all(label in tools._dish_garnish_notes(d, member) for d in kept), term)
+
+    def test_dish_cooked_with_chili_still_blocked(self):
+        blocked = [d for r in tools._load_restaurants_data() for d in r["menu"]
+                   if d.get("in_stock") and tools._dish_satisfies_member(d, _m("An", 200000, avoid_keywords=["ớt"]), 0)]
+        self.assertTrue(blocked)
